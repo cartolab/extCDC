@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.6.0_06"/>
+	<classpathentry kind="lib" path="lib/formsrt.jar"/>
+	<classpathentry kind="lib" path="lib/swinglabs-0.8.0.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/sextante_gui"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/sextante"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/_fwAndami"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/appgvSIG"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/libFMap"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/libGDBMS"/>
+	<classpathentry kind="lib" path="/libFMap/lib/org.cresques.cts.jar"/>
+	<classpathentry kind="src" path="/gvsig_1_9"/>
+	<classpathentry kind="src" path="/extRasterTools-SE"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/libExceptions"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/libDriverManager"/>
+	<classpathentry kind="lib" path="lib/javacsv.jar" sourcepath="/home/nachouve/Downloads/JAVACSV/src/com/csvreader"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
