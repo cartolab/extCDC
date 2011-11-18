@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<plugin-config>
+	<depends plugin-name="com.iver.cit.gvsig"/>
+	<depends plugin-name="es.unex.sextante"/>
+	<libraries library-dir="lib"/>
+	<resourceBundle name="text"/>
+	<!-- <extensions>
+		<extension class-name="es.udc.cartolab.accesTerrit.AccesTerritGuiExtension" description="ACCESTERRIT_PANEL" active="true">
+			<tool-bar name="_acces_territ_tool-bar-name">
+				<action-tool icon="acces_territ-icon" tooltip="_acces_territ-launcher-tooltip"
+					action-command="gui" position="0" />
+			</tool-bar>
+			<menu text="_acces_territ_menu_name/_acces_territ-launcher"
+				action-command="gui" position="0"
+				 />
+		</extension>
+	</extensions> -->
+</plugin-config>

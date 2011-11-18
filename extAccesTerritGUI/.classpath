@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="/libFMap"/>
+	<classpathentry kind="src" path="/_fwAndami"/>
+	<classpathentry kind="src" path="/libGDBMS"/>
+	<classpathentry kind="lib" path="lib/es.udc.cartolab.gvsig.navtableforms.jar"/>
+	<classpathentry kind="lib" path="lib/formsrt.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.8.jar"/>
+	<classpathentry kind="lib" path="lib/jasperreports-4.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/jodconverter-2.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/jodconverter-cli-2.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/org.gvsig.ui.jar"/>
+	<classpathentry kind="src" path="/appgvSIG"/>
+	<classpathentry kind="src" path="/libIverUtiles"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/libExceptions"/>
+	<classpathentry kind="lib" path="/extNavTableForms/lib/validation-2.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/jgoodies-binding-2.1.0rc.jar"/>
+	<classpathentry kind="lib" path="lib/jgoodies-common-0.9.9.jar"/>
+	<classpathentry kind="src" path="/libDriverManager"/>
+	<classpathentry kind="src" path="/extLoadData"/>
+	<classpathentry kind="src" path="/CopyFeature"/>
+	<classpathentry kind="src" path="/libCorePlugin"/>
+	<classpathentry kind="lib" path="lib/iText-2.1.5.jar"/>
+	<classpathentry kind="lib" path="lib/iText-rtf-2.1.5.jar"/>
+	<classpathentry kind="lib" path="/libFMap/lib/gdbms-0.8-SNAPSHOT.jar" sourcepath="/libGDBMS"/>
+	<classpathentry kind="lib" path="/extNavTable/lib/miglayout-3.7.3.1.jar"/>
+	<classpathentry kind="src" path="/extNavTable"/>
+	<classpathentry kind="lib" path="lib/org.gvsig.fmap.raster.jar"/>
+	<classpathentry kind="lib" path="lib/org.gvsig.raster.gui.jar"/>
+	<classpathentry kind="lib" path="lib/org.gvsig.raster.jar"/>
+	<classpathentry kind="lib" path="lib/org.cresques.cts.jar"/>
+	<classpathentry kind="src" path="/sextante"/>
+	<classpathentry kind="src" path="/sextante_gui"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
