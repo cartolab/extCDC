@@ -6,46 +6,34 @@ import es.unex.sextante.dataObjects.IRasterLayer;
 
 public class MovementSurface {
 
-   private final int                 ID;
+   private final int                 ID_CLASS;
    private final String              NAME;
-   private final String              GROUP;
-   private final boolean             HAS_CONDITIONAL_COST;
+   private final String              CSS;
+   private final boolean             IS_NODE;
    private final IRasterLayer        CONDITIONAL_COST_GRID;
-   private final boolean             LINK;
-   private final int                 DEPENDS_ON_ZONE;
-   //   private boolean                   IS_ASSOCIATED_FROM_OTHER;
 
    private HashMap<Integer, Boolean> movConstraintsMap = new HashMap<Integer, Boolean>();
 
 
    public MovementSurface(final int id) {
-      ID = id;
+      ID_CLASS = id;
       NAME = String.valueOf(id);
-      GROUP = "";
-      HAS_CONDITIONAL_COST = false;
+      CSS = "";
+      IS_NODE = false;
       CONDITIONAL_COST_GRID = null;
-      LINK = false;
-      DEPENDS_ON_ZONE = -1;
-      //    IS_ASSOCIATED_FROM_OTHER = false;
    }
 
-
-   public MovementSurface(final int id,
+   public MovementSurface(final int id_class,
                           final String name,
-                          final String group,
-                          final boolean has_conditional_cost,
-                          final IRasterLayer conditional_cost_grid,
-                          final boolean link,
-                          final int depends_on_zone) {
+                          final String css,
+                          final boolean is_node,
+                          final IRasterLayer conditional_cost_grid) {
 
-      ID = id;
+      ID_CLASS = id_class;
       NAME = name;
-      GROUP = group;
-      HAS_CONDITIONAL_COST = has_conditional_cost;
+      CSS = css;
+      IS_NODE = is_node;
       CONDITIONAL_COST_GRID = conditional_cost_grid;
-      LINK = link;
-      DEPENDS_ON_ZONE = depends_on_zone;
-      //      IS_ASSOCIATED_FROM_OTHER = false;
    }
 
 
@@ -109,34 +97,34 @@ public class MovementSurface {
 
 
    public int getID() {
-      return ID;
+      return ID_CLASS;
    }
 
 
    public String getGroup() {
-      return GROUP;
+      return CSS;
    }
 
 
    public boolean hasConditionalCost() {
-      return HAS_CONDITIONAL_COST;
+      return IS_NODE;
    }
 
-
-   public boolean dependsOn(final int id) {
-      if (id == this.DEPENDS_ON_ZONE) {
-         return true;
-      }
-      return false;
-   }
-
-
-   public boolean isDependent() {
-      if (this.DEPENDS_ON_ZONE > -1) {
-         return true;
-      }
-      return false;
-   }
+//
+//   public boolean dependsOn(final int id) {
+//      if (id == this.DEPENDS_ON_ZONE) {
+//         return true;
+//      }
+//      return false;
+//   }
+//
+//
+//   public boolean isDependent() {
+//      if (this.DEPENDS_ON_ZONE > -1) {
+//         return true;
+//      }
+//      return false;
+//   }
 
 
    public double getCCValueAt(final int x,
@@ -157,6 +145,10 @@ public class MovementSurface {
          name = CONDITIONAL_COST_GRID.getName();
       }
       return name;
+   }
+   
+   public boolean isNode(){
+	   return IS_NODE;
    }
 
 }

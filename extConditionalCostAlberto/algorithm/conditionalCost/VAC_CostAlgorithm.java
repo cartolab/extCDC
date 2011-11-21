@@ -71,7 +71,7 @@ public class VAC_CostAlgorithm
    public void defineCharacteristics() {
 
       setName(Sextante.getText("VAC_COST"));
-      setGroup(Sextante.getText("ALBERTO"));
+      setGroup(Sextante.getText("ALBERTO_VAC"));
       setUserCanDefineAnalysisExtent(true);
 
       try {
@@ -143,7 +143,7 @@ public class VAC_CostAlgorithm
       //      System.out.println("MAX ID: " + m_LinkIdGrid.getMaxValue());
       //      System.out.println("Min ID: " + m_LinkIdGrid.getMinValue());
 
-      //TODO Debería de tener un sólo punto... pero por si acaso
+      //TODO Deberï¿½a de tener un sï¿½lo punto... pero por si acaso
       //TODO HACER PARA QUE PUEDA TENER MUCHOS PUNTOS
       while (iter.hasNext()) {
          final IFeature feature = iter.next();
