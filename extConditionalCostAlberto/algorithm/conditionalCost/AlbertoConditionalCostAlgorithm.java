@@ -564,13 +564,28 @@ GeoAlgorithm {
 									}
 									////////////////////////////////////
 									ccsID = surface.getCCSName();
-									final IRasterLayer outputRaster = output_Cond_AccCosts.get(ccsID);
-									//final double cost1 = surface.getCCValueAt(x1, y1);
-									final double cost1 = orgCostValue;
-									final double cost2 = surface.getCCValueAt(x2, y2);
+									IRasterLayer outputRaster = output_Cond_AccCosts.get(ccsID);
+									double cost1 = orgCostValue;
+									double cost2 = surface.getCCValueAt(x2, y2);
 									orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
 									dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
-									setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID, iPoint);									
+									setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID, iPoint);
+									
+									// Preguntar a Alberto ZDo compatible ZDd es lo mismo que se puede mover???
+									if (canMove){
+										if (DEBUG) {
+											System.out.println("CASd = CASo + d * ( CSo + CSd)");
+										}
+										////////////////////////////////////
+										ccsID = surface.getCCSName();
+										outputRaster = output_GAccCost;
+										cost1 = orgCostValue;
+										cost2 = dstCostValue;
+										orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
+										dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
+										setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID, iPoint);
+									}
+									
 								}
 							} else {
 								
