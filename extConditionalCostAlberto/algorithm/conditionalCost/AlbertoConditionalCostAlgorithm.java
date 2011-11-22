@@ -53,6 +53,8 @@ public class AlbertoConditionalCostAlgorithm
 extends
 GeoAlgorithm {
 
+	private static final boolean DEBUG = true;
+	
 	public static final String            COST                           = "COST";
 	public static final String            ORIG_DEST                      = "ORIG_DEST";
 	public static final String            CONDITIONAL_COST_SURFACES      = "CONDITINAL_COST_SURFACES";
@@ -504,16 +506,16 @@ GeoAlgorithm {
 					boolean orgHasValueInCondAccCost = false;
 					final boolean dstHasValueInCondAccCost = false;
 
-//					//pertenece a una ZDC asociada a cualquier Grupo de Zonas de Desplazamiento Condicionado (GZDC)
-//					//boolean sameGZDC = false;
-//					final boolean dstAssociatedToOrg = false;
 					boolean canMove = false;
 
 					boolean someZDdependsOn_ORG = false;
 					boolean someZDdependsOn_DST = false;
+					MovementSurface surface = null;
 					for (int k = 0; k < surfacesMap.size(); k++) {
-
-						final MovementSurface surface = surfacesMap.get(k);
+						//TODO IMPORTANTE 
+						// Y si tiene posibilidad de moverse a varios Superficies??? Como se itera???
+						//final MovementSurface surface = surfacesMap.get(k);
+						surface = surfacesMap.get(k);
 						if ((surface == null)) {
 							continue;
 						}
@@ -525,11 +527,10 @@ GeoAlgorithm {
 						if (surface.hasConditionalCostValueAt(x2, y2)) {
 							dstHasSomeCondCostValue = true;
 						}
-						// TODO Quizas se necesite una nueva iteracion para las HasSome... y hacer cositas aqui...
+
 					}
 
 					canMove = canMoveTo(orgSurface, dstSurface.getID());
-					//sameGZDC = orgSurface.getGroup().equalsIgnoreCase(dstSurface.getGroup());
 
 					// TODO Has a Map with the output_ConditionalAccCost layers
 					if ((orgSurface != null) && orgSurface.hasConditionalCost()) {
@@ -557,7 +558,19 @@ GeoAlgorithm {
 								//TODO 
 								if (orgSurface.isNode()){
 									// orgZD is node of this ECD
-									
+									////////////////////////////////////
+									if (DEBUG) {
+										System.out.println("CACiD = CASo + d * ( CSo + CCiD)");
+									}
+									////////////////////////////////////
+									ccsID = surface.getCCSName();
+									final IRasterLayer outputRaster = output_Cond_AccCosts.get(ccsID);
+									//final double cost1 = surface.getCCValueAt(x1, y1);
+									final double cost1 = orgCostValue;
+									final double cost2 = surface.getCCValueAt(x2, y2);
+									orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
+									dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
+									setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID, iPoint);									
 								}
 							} else {
 								
