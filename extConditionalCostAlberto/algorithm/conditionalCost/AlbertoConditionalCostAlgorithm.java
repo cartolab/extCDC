@@ -604,7 +604,7 @@ GeoAlgorithm {
 								continue;
 							}
 							System.out.println("CC.name: " + auxSurf.getCCSName());
-							//							final boolean dstHasSCC = auxSurf.hasConditionalCostValueAt(x2, y2);
+							final boolean dstHasSCC = auxSurf.hasConditionalCostValueAt(x2, y2);
 							//							if (dstHasSCC) {
 							//								//TODO
 							//								//CAC3
