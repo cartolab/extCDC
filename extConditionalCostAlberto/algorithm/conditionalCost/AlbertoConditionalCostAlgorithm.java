@@ -54,7 +54,7 @@ extends
 GeoAlgorithm {
 
 	private static final boolean DEBUG = true;
-	
+
 	public static final String            COST                           = "COST";
 	public static final String            ORIG_DEST                      = "ORIG_DEST";
 	public static final String            CONDITIONAL_COST_SURFACES      = "CONDITINAL_COST_SURFACES";
@@ -302,7 +302,7 @@ GeoAlgorithm {
 			cac.close();
 			output_Cond_AccCosts.put(k, cac);
 		}
-		
+
 		//      ///////////////////////////////////
 		//      final String name = OUTPUT_ACCCOST + Integer.toString(i);
 		//      final IOutputChannel channel = getMyOutputChannel(name);
@@ -448,7 +448,7 @@ GeoAlgorithm {
 			System.out.println();
 			System.out.println();
 			System.out.println("------------ m_CentralPoints.size(): " + m_CentralPoints.size());
-			
+
 			//NachoV: Ahora acabo de poner esta ordenacion antes del iter... ¿¿¿Es correcto???
 			Collections.sort(m_CentralPoints, new XYGridcellValue_Comparator());
 			final Iterator iter = m_CentralPoints.iterator();
@@ -508,27 +508,9 @@ GeoAlgorithm {
 
 					boolean canMove = false;
 
-					boolean someZDdependsOn_ORG = false;
-					boolean someZDdependsOn_DST = false;
+					//					boolean someZDdependsOn_ORG = false;
+					//					boolean someZDdependsOn_DST = false;
 					MovementSurface surface = null;
-					for (int k = 0; k < surfacesMap.size(); k++) {
-						//TODO IMPORTANTE 
-						// Y si tiene posibilidad de moverse a varios Superficies??? Como se itera???
-						//final MovementSurface surface = surfacesMap.get(k);
-						surface = surfacesMap.get(k);
-						if ((surface == null)) {
-							continue;
-						}
-
-						if (surface.hasConditionalCostValueAt(x1, y1)) {
-							orgHasSomeCondCostValue = true;
-						}
-
-						if (surface.hasConditionalCostValueAt(x2, y2)) {
-							dstHasSomeCondCostValue = true;
-						}
-
-					}
 
 					canMove = canMoveTo(orgSurface, dstSurface.getID());
 
@@ -538,13 +520,13 @@ GeoAlgorithm {
 						orgHasValueInCondAccCost = orgSurface.isValidConditionalCost(o_cac.getValueAt(x1, y1));
 					}
 
-//					////////////////// Para parar en un punto conflictivo
-//					if ((x1 == 5) && (y1 == 3) && (x2 == 5) && (y2 == 4)) {
-//						//if ((orgSurfaceID == 5) && (dstSurfaceID == 3)) {
-//						System.out.println("ZC_ORG: " + orgSurfaceID + "  X1, y1: " + x1 + "," + y1);
-//						System.out.println("ZC_DST: " + dstSurfaceID + "  X2, y2: " + x2 + "," + y2);
-//						//                     //                     System.out.println("PROBLEMS CONTINUE HERE!!!!!!!!!");
-//					}
+					//					////////////////// Para parar en un punto conflictivo
+					//					if ((x1 == 5) && (y1 == 3) && (x2 == 5) && (y2 == 4)) {
+					//						//if ((orgSurfaceID == 5) && (dstSurfaceID == 3)) {
+					//						System.out.println("ZC_ORG: " + orgSurfaceID + "  X1, y1: " + x1 + "," + y1);
+					//						System.out.println("ZC_DST: " + dstSurfaceID + "  X2, y2: " + x2 + "," + y2);
+					//						//                     //                     System.out.println("PROBLEMS CONTINUE HERE!!!!!!!!!");
+					//					}
 
 
 					//ALGORITHM CALCULUS
@@ -553,195 +535,262 @@ GeoAlgorithm {
 
 						if (ccsID.equalsIgnoreCase("GLOBAL")) {
 							//It means that the gridCell on m_CentralPoint belongs to Global Cost Surface
-							if (dstHasSomeCondCostValue) {
+							for (int k = 0; k < surfacesMap.size(); k++) {
 								
-								//TODO 
-								if (orgSurface.isNode()){
-									// orgZD is node of this ECD
-									////////////////////////////////////
-									if (DEBUG) {
-										System.out.println("CACiD = CASo + d * ( CSo + CCiD)");
-									}
-									////////////////////////////////////
-									ccsID = surface.getCCSName();
-									IRasterLayer outputRaster = output_Cond_AccCosts.get(ccsID);
-									double cost1 = orgCostValue;
-									double cost2 = surface.getCCValueAt(x2, y2);
-									orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
-									dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
-									setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID, iPoint);
+								//TODO IMPORTANTE 
+								// Y si tiene posibilidad de moverse a varios Superficies??? Como se itera???
+								//final MovementSurface surface = surfacesMap.get(k);
+								surface = surfacesMap.get(k);
+								
+								if ((surface == null)) {
+									continue;
+								}
+
+								if (surface.hasConditionalCostValueAt(x1, y1)) {
+									orgHasSomeCondCostValue = true;
+								}
+
+								if (surface.hasConditionalCostValueAt(x2, y2)) {
+									dstHasSomeCondCostValue = true;
+								}
+
+								if (dstHasSomeCondCostValue) {
 									
-									// Preguntar a Alberto ZDo compatible ZDd es lo mismo que se puede mover???
-									if (canMove){
+									System.out.println("SCCk: " + k);
+									//TODO 
+									if (orgSurface.isNode()){
+										// orgZD is node of this ECD
+										////////////////////////////////////
 										if (DEBUG) {
-											System.out.println("CASd = CASo + d * ( CSo + CSd)");
+											System.out.println("CACiD = CASo + d * ( CSo + CCiD)");
 										}
 										////////////////////////////////////
 										ccsID = surface.getCCSName();
-										outputRaster = output_GAccCost;
-										cost1 = orgCostValue;
-										cost2 = dstCostValue;
+										IRasterLayer outputRaster = output_Cond_AccCosts.get(ccsID);
+										double cost1 = orgCostValue;
+										double cost2 = surface.getCCValueAt(x2, y2);
 										orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
 										dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
-										setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID, iPoint);
+										setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID, iPoint);								
 									}
-									
+								} 								
+								// Preguntar a Alberto ZDo compatible ZDd es lo mismo que se puede mover???
+								if (canMove){
+									if (DEBUG) {
+										System.out.println("CASd = CASo + d * ( CSo + CSd)");
+									}
+									////////////////////////////////////
+									ccsID = surface.getCCSName();
+									IRasterLayer outputRaster = output_GAccCost;
+									double cost1 = orgCostValue;
+									double cost2 = dstCostValue;
+									orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
+									dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
+									setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID, iPoint);
 								}
-							} else {
-								
-							}
+							} // FOR of "D tiene valor en algún SCCi (1-n)"
+
 						} else {
-							//NO ES GLOBAL
+							//NO ES GLOBAL							
+							MovementSurface auxSurf = null;
+							for (final Integer surfID : surfacesMap.keySet()) {
+								auxSurf = surfacesMap.get(surfID);
+								//TODO NachoV rename ccsID a otro nombre mejor?
+								if (auxSurf.getCCSName() == ccsID) {
+									break;
+								}
+							}
+							if (auxSurf == null) {
+								continue;
+							}
+							System.out.println("CC.name: " + auxSurf.getCCSName());
+							//							final boolean dstHasSCC = auxSurf.hasConditionalCostValueAt(x2, y2);
+							//							if (dstHasSCC) {
+							//								//TODO
+							//								//CAC3
+							//								System.out.println("CAC3");
+							//								ccsID = auxSurf.getCCSName();
+							//								final IRasterLayer outputRaster = output_Cond_AccCosts.get(ccsID);
+							//								final double cost1 = auxSurf.getCCValueAt(x1, y1);
+							//								//TODO rectificacion de alberto en ppt
+							//								//final double cost2 = m_Cost.getCellValueAsDouble(x2, y2);
+							//								final double cost2 = auxSurf.getCCValueAt(x2, y2);
+							//								orgAccCost = outputRaster.getCellValueAsDouble(x1, y1);
+							//								dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
+							//
+							//								setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID, iPoint);
+							//							}
+							//							else {
+							//								//				if (orgSurface.dependsOn(dstSurfaceID)) {
+							//								//				    //TODO
+							//								//				    //CAG2
+							//								//				    System.out.println(">> CAG2 <<");
+							//								//				    final IRasterLayer ccsRaster = output_Cond_AccCosts.get(auxSurf.getCCSName());
+							//								//				    final double cost1 = auxSurf.getCCValueAt(x1, y1);
+							//								//				    final double cost2 = m_Cost.getCellValueAsDouble(x2, y2);
+							//								//				    orgAccCost = ccsRaster.getCellValueAsDouble(x1, y1);
+							//								//				    dPrevAccCost = output_GAccCost.getCellValueAsDouble(x2, y2);
+							//								//
+							//								//				    setOutputValue(output_GAccCost, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID, iPoint);
+							//								//
+							//								//				}
+							//								//				else {
+							//								//				    //Nothing
+							//								//				}
+							//							}
+							//						}
+							//					}
+
 						}
 
-					}
-					
-					
-//					//OLD ALGORITHM CALCULUS
-//					if (!m_Cost.isNoDataValue(orgCostValue) && !m_Cost.isNoDataValue(dstCostValue) && (orgCostValue > 0)
-//							&& (dstCostValue > 0) && canMove(orgSurface, dstSurface, orgSurfaceID, dstSurfaceID)) {
-//
-//						if (ccsID.equalsIgnoreCase("GLOBAL")) {
-//							//It means that the gridCell on m_CentralPoint belongs to Global Cost Surface
-//							if (dstHasSomeCondCostValue) {
-//								if (someZDdependsOn_ORG) {
-//									if (dstDependsOnOrg) {
-//										final boolean dstHasConditionalCost = dstSurface.hasConditionalCost();
-//										if (dstHasConditionalCost) {
-//											for (int k = 0; k < surfacesMap.size(); k++) {
-//												final MovementSurface surface = surfacesMap.get(k);
-//												if ((surface == null)) {
-//													continue;
-//												}
-//												if (surface.getID() != dstSurfaceID) {
-//													continue;
-//												}
-//												final boolean orgHasCCValue = surface.hasConditionalCostValueAt(x1, y1);
-//												//dstHasConditionalCostValue = surface.hasConditionalCostValueAt(x2, y2);
-//												if (orgHasCCValue) {
-//													//TODO
-//													//CAC1
-//													System.out.println("CAC1");
-//													ccsID = surface.getCCSName();
-//													final IRasterLayer outputRaster = output_Cond_AccCosts.get(ccsID);
-//													final double cost1 = surface.getCCValueAt(x1, y1);
-//													final double cost2 = surface.getCCValueAt(x2, y2);
-//													orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
-//													dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
-//													setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID,
-//															iPoint);
-//												}
-//												else {
-//													//TODO
-//													//CAC2
-//													System.out.println("CAC2");
-//													ccsID = surface.getCCSName();
-//													final IRasterLayer outputRaster = output_Cond_AccCosts.get(ccsID);
-//													final double cost1 = m_Cost.getCellValueAsDouble(x1, y1);
-//													final double cost2 = surface.getCCValueAt(x2, y2);
-//													orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
-//													dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
-//													setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID,
-//															iPoint);
-//												}
-//											}
-//										}
-//									}
-//									else { //NOT orgDependsOnDst
-//										if (dstSurfaceID == orgSurfaceID) {
-//											//TODO
-//											//CAG1
-//											setGlobalOutputValue(x1, y1, x2, y2, iPoint, dist);
-//										}
-//										else {
-//											//Nothing
-//										}
-//
-//									}
-//								}
-//								else { // NOT someZDdependsOn_ORG
-//									//TODO
-//									//CAG1
-//									setGlobalOutputValue(x1, y1, x2, y2, iPoint, dist);
-//								}
-//							}
-//							else { //NOT dstHasSomeConditionalCostValue
-//								if (someZDdependsOn_DST) {
-//									//                              for (int k = 0; k < surfacesMap.size(); k++) {
-//									//                                 final MovementSurface surface = surfacesMap.get(k);
-//									//                                 if ((surface == null)) {
-//									//                                    continue;
-//									//                                 }
-//									if (orgHasSomeCondCostValue) {
-//										//Nothing
-//									}
-//									else {
-//										//TODO
-//										//CAG1
-//										setGlobalOutputValue(x1, y1, x2, y2, iPoint, dist);
-//										//break; // orgHasConditionalValue on some CCS
-//									}
-//									//                              }
-//								}
-//								else {
-//									//TODO
-//									//CAG1
-//									setGlobalOutputValue(x1, y1, x2, y2, iPoint, dist);
-//								}
-//							}
-//						}
-//						////////////////////////////////////////////////////////////
-//						else {
-//							//It means that the gridCell on m_CentralPoint belongs to Conditional Cost Surface
-//
-//							//TODO NO HACE FALTA AUX_SUR, NOF????
-//							MovementSurface auxSurf = null;
-//							for (final Integer surfID : surfacesMap.keySet()) {
-//								auxSurf = surfacesMap.get(surfID);
-//								if (auxSurf.getCCSName() == ccsID) {
-//									break;
-//								}
-//							}
-//							if (auxSurf == null) {
-//								continue;
-//							}
-//							System.out.println("CC.name: " + auxSurf.getCCSName());
-//							final boolean dstHasSCC = auxSurf.hasConditionalCostValueAt(x2, y2);
-//							if (dstHasSCC) {
-//								//TODO
-//								//CAC3
-//								System.out.println("CAC3");
-//								ccsID = auxSurf.getCCSName();
-//								final IRasterLayer outputRaster = output_Cond_AccCosts.get(ccsID);
-//								final double cost1 = auxSurf.getCCValueAt(x1, y1);
-//								//TODO rectificacion de alberto en ppt
-//								//final double cost2 = m_Cost.getCellValueAsDouble(x2, y2);
-//								final double cost2 = auxSurf.getCCValueAt(x2, y2);
-//								orgAccCost = outputRaster.getCellValueAsDouble(x1, y1);
-//								dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
-//
-//								setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID, iPoint);
-//							}
-//							else {
-//								//				if (orgSurface.dependsOn(dstSurfaceID)) {
-//								//				    //TODO
-//								//				    //CAG2
-//								//				    System.out.println(">> CAG2 <<");
-//								//				    final IRasterLayer ccsRaster = output_Cond_AccCosts.get(auxSurf.getCCSName());
-//								//				    final double cost1 = auxSurf.getCCValueAt(x1, y1);
-//								//				    final double cost2 = m_Cost.getCellValueAsDouble(x2, y2);
-//								//				    orgAccCost = ccsRaster.getCellValueAsDouble(x1, y1);
-//								//				    dPrevAccCost = output_GAccCost.getCellValueAsDouble(x2, y2);
-//								//
-//								//				    setOutputValue(output_GAccCost, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID, iPoint);
-//								//
-//								//				}
-//								//				else {
-//								//				    //Nothing
-//								//				}
-//							}
-//						}
-//					}
+					} 
+
+
+					//					//OLD ALGORITHM CALCULUS
+					//					if (!m_Cost.isNoDataValue(orgCostValue) && !m_Cost.isNoDataValue(dstCostValue) && (orgCostValue > 0)
+					//							&& (dstCostValue > 0) && canMove(orgSurface, dstSurface, orgSurfaceID, dstSurfaceID)) {
+					//
+					//						if (ccsID.equalsIgnoreCase("GLOBAL")) {
+					//							//It means that the gridCell on m_CentralPoint belongs to Global Cost Surface
+					//							if (dstHasSomeCondCostValue) {
+					//								if (someZDdependsOn_ORG) {
+					//									if (dstDependsOnOrg) {
+					//										final boolean dstHasConditionalCost = dstSurface.hasConditionalCost();
+					//										if (dstHasConditionalCost) {
+					//											for (int k = 0; k < surfacesMap.size(); k++) {
+					//												final MovementSurface surface = surfacesMap.get(k);
+					//												if ((surface == null)) {
+					//													continue;
+					//												}
+					//												if (surface.getID() != dstSurfaceID) {
+					//													continue;
+					//												}
+					//												final boolean orgHasCCValue = surface.hasConditionalCostValueAt(x1, y1);
+					//												//dstHasConditionalCostValue = surface.hasConditionalCostValueAt(x2, y2);
+					//												if (orgHasCCValue) {
+					//													//TODO
+					//													//CAC1
+					//													System.out.println("CAC1");
+					//													ccsID = surface.getCCSName();
+					//													final IRasterLayer outputRaster = output_Cond_AccCosts.get(ccsID);
+					//													final double cost1 = surface.getCCValueAt(x1, y1);
+					//													final double cost2 = surface.getCCValueAt(x2, y2);
+					//													orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
+					//													dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
+					//													setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID,
+					//															iPoint);
+					//												}
+					//												else {
+					//													//TODO
+					//													//CAC2
+					//													System.out.println("CAC2");
+					//													ccsID = surface.getCCSName();
+					//													final IRasterLayer outputRaster = output_Cond_AccCosts.get(ccsID);
+					//													final double cost1 = m_Cost.getCellValueAsDouble(x1, y1);
+					//													final double cost2 = surface.getCCValueAt(x2, y2);
+					//													orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
+					//													dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
+					//													setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID,
+					//															iPoint);
+					//												}
+					//											}
+					//										}
+					//									}
+					//									else { //NOT orgDependsOnDst
+					//										if (dstSurfaceID == orgSurfaceID) {
+					//											//TODO
+					//											//CAG1
+					//											setGlobalOutputValue(x1, y1, x2, y2, iPoint, dist);
+					//										}
+					//										else {
+					//											//Nothing
+					//										}
+					//
+					//									}
+					//								}
+					//								else { // NOT someZDdependsOn_ORG
+					//									//TODO
+					//									//CAG1
+					//									setGlobalOutputValue(x1, y1, x2, y2, iPoint, dist);
+					//								}
+					//							}
+					//							else { //NOT dstHasSomeConditionalCostValue
+					//								if (someZDdependsOn_DST) {
+					//									//                              for (int k = 0; k < surfacesMap.size(); k++) {
+					//									//                                 final MovementSurface surface = surfacesMap.get(k);
+					//									//                                 if ((surface == null)) {
+					//									//                                    continue;
+					//									//                                 }
+					//									if (orgHasSomeCondCostValue) {
+					//										//Nothing
+					//									}
+					//									else {
+					//										//TODO
+					//										//CAG1
+					//										setGlobalOutputValue(x1, y1, x2, y2, iPoint, dist);
+					//										//break; // orgHasConditionalValue on some CCS
+					//									}
+					//									//                              }
+					//								}
+					//								else {
+					//									//TODO
+					//									//CAG1
+					//									setGlobalOutputValue(x1, y1, x2, y2, iPoint, dist);
+					//								}
+					//							}
+					//						}
+					//						////////////////////////////////////////////////////////////
+					//						else {
+					//							//It means that the gridCell on m_CentralPoint belongs to Conditional Cost Surface
+					//
+					//							//TODO NO HACE FALTA AUX_SUR, NOF????
+					//							MovementSurface auxSurf = null;
+					//							for (final Integer surfID : surfacesMap.keySet()) {
+					//								auxSurf = surfacesMap.get(surfID);
+					//								if (auxSurf.getCCSName() == ccsID) {
+					//									break;
+					//								}
+					//							}
+					//							if (auxSurf == null) {
+					//								continue;
+					//							}
+					//							System.out.println("CC.name: " + auxSurf.getCCSName());
+					//							final boolean dstHasSCC = auxSurf.hasConditionalCostValueAt(x2, y2);
+					//							if (dstHasSCC) {
+					//								//TODO
+					//								//CAC3
+					//								System.out.println("CAC3");
+					//								ccsID = auxSurf.getCCSName();
+					//								final IRasterLayer outputRaster = output_Cond_AccCosts.get(ccsID);
+					//								final double cost1 = auxSurf.getCCValueAt(x1, y1);
+					//								//TODO rectificacion de alberto en ppt
+					//								//final double cost2 = m_Cost.getCellValueAsDouble(x2, y2);
+					//								final double cost2 = auxSurf.getCCValueAt(x2, y2);
+					//								orgAccCost = outputRaster.getCellValueAsDouble(x1, y1);
+					//								dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
+					//
+					//								setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID, iPoint);
+					//							}
+					//							else {
+					//								//				if (orgSurface.dependsOn(dstSurfaceID)) {
+					//								//				    //TODO
+					//								//				    //CAG2
+					//								//				    System.out.println(">> CAG2 <<");
+					//								//				    final IRasterLayer ccsRaster = output_Cond_AccCosts.get(auxSurf.getCCSName());
+					//								//				    final double cost1 = auxSurf.getCCValueAt(x1, y1);
+					//								//				    final double cost2 = m_Cost.getCellValueAsDouble(x2, y2);
+					//								//				    orgAccCost = ccsRaster.getCellValueAsDouble(x1, y1);
+					//								//				    dPrevAccCost = output_GAccCost.getCellValueAsDouble(x2, y2);
+					//								//
+					//								//				    setOutputValue(output_GAccCost, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, ccsID, iPoint);
+					//								//
+					//								//				}
+					//								//				else {
+					//								//				    //Nothing
+					//								//				}
+					//							}
+					//						}
+					//					}
 				}
 			}
 		} // For para recorrer celdas
