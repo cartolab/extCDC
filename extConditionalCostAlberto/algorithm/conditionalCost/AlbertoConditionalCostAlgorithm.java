@@ -200,7 +200,8 @@ GeoAlgorithm {
 		output_CondAccCosts = new HashMap<String, IRasterLayer>();
 		for (int i = 0; i < costs_surfaces_array.size(); i++) {
 			final IRasterLayer cost_grid = costs_surfaces_array.get(i);
-			input_Cond_Costs.put(cost_grid.getName(), cost_grid);
+			String costgridname = cost_grid.getName();
+			input_Cond_Costs.put(costgridname, cost_grid);
 		}
 
 		m_Movement_Surfaces = m_Parameters.getParameterValueAsRasterLayer(MOVEMENT_SURFACES);
@@ -299,7 +300,7 @@ GeoAlgorithm {
 			//TODO Esto debe hacerse al final de todo al tener la capa ya creadita
 			addOutputRasterLayer(name, name, 1, channel, cac);
 
-			cac.close();
+			//cac.close();
 			output_CondAccCosts.put(k, cac);
 		}
 
@@ -459,7 +460,7 @@ GeoAlgorithm {
 				final Double value = (Double) ccsID_cellValue[2];
 				x1 = cell.getX();
 				y1 = cell.getY();
-				System.out.println("x,y: (" + x1 + ", " + y1 + ") ccsID:" + ccsID + " -- " + value);
+				System.out.println("x,y: (" + x1 + ", " + y1 + ") ccsID: [" + ccsID + "] Value: " + value);
 			}
 			System.out.println();
 			System.out.println();
@@ -509,18 +510,20 @@ GeoAlgorithm {
 					final boolean orgHasValueInGAccCost = !output_GAccCost.isNoDataValue(output_GAccCost.getCellValueAsDouble(x1, y1));
 					final boolean dstHasValueInGAccCost = !output_GAccCost.isNoDataValue(output_GAccCost.getCellValueAsDouble(x2, y2));
 					//boolean dstHasConditionalCostValue = false;
-					boolean orgHasValueInCondAccCost = false;
-					final boolean dstHasValueInCondAccCost = false;
+//					boolean orgHasValueInCondAccCost = false;
+					//final boolean dstHasValueInCondAccCost = false;
 
 					//					boolean someZDdependsOn_ORG = false;
 					//					boolean someZDdependsOn_DST = false;
 					MovementSurface surface = null;
 
 					// TODO Has a Map with the output_ConditionalAccCost layers
-					if ((orgSurface != null) && orgSurface.hasConditionalCost()) {
-						final IRasterLayer o_cac = output_CondAccCosts.get(orgSurface.getCCSName());
-						orgHasValueInCondAccCost = orgSurface.isValidConditionalCost(o_cac.getValueAt(x1, y1));
-					}
+//					if ((orgSurface != null) && orgSurface.hasConditionalCost()) {
+//						final IRasterLayer o_cac = output_CondAccCosts.get(orgSurface.getCCSName());
+//						if (o_cac != null){
+//							orgHasValueInCondAccCost = orgSurface.isValidConditionalCost(o_cac.getValueAt(x1, y1));
+//						}
+//					}
 
 					//					////////////////// Para parar en un punto conflictivo
 					//					if ((x1 == 5) && (y1 == 3) && (x2 == 5) && (y2 == 4)) {
@@ -568,7 +571,7 @@ GeoAlgorithm {
 										// orgZD is node of this ECD
 										////////////////////////////////////
 										if (DEBUG) {
-											System.out.println("---------------> CACiD = CASo + d * ( CSo + CCiD)");
+											System.out.println("CAC ===============> CACiD = CASo + d * ( CSo + CCiD)");
 										}
 										////////////////////////////////////
 										String new_ccsID = surface.getCCSName();
@@ -576,7 +579,9 @@ GeoAlgorithm {
 										double cost1 = orgCostValue;
 										double cost2 = surface.getCCValueAt(x2, y2);
 										orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
+										outputRaster.open();
 										dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
+										outputRaster.close();
 										setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, new_ccsID, iPoint);								
 									}
 								} 								
@@ -586,7 +591,7 @@ GeoAlgorithm {
 										System.out.println("---------------> CASd = CASo + d * ( CSo + CSd)");
 									}
 									////////////////////////////////////
-									String new_ccsID = surface.getCCSName();
+									String new_ccsID = "GLOBAL"; //surface.getCCSName();
 									IRasterLayer outputRaster = output_GAccCost;
 									double cost1 = orgCostValue;
 									double cost2 = dstCostValue;
@@ -619,21 +624,23 @@ GeoAlgorithm {
 								//TODO
 								//CAC3
 								if (DEBUG) {
-									System.out.println("---------------> CACid = CACio + d * ( CCio + CCid)");
+									System.out.println("===============> CACid = CACio + d * ( CCio + CCid)");
 								}
 								String new_ccsID = auxSurf.getCCSName();
 								final IRasterLayer outputRaster = output_CondAccCosts.get(new_ccsID);
 								final double cost1 = auxSurf.getCCValueAt(x1, y1);
 								final double cost2 = auxSurf.getCCValueAt(x2, y2);
+								outputRaster.open();
 								orgAccCost = outputRaster.getCellValueAsDouble(x1, y1);
 								dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
+								outputRaster.close();
 
 								setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, new_ccsID, iPoint);
 							}
 
 							if (orgSurface.isNode()){
 								if (DEBUG) {
-									System.out.println("---------------> CASd = CACio + d * ( CCio + CSd)");
+									System.out.println("NO_GLOBAL---------------> CASd = CACio + d * ( CCio + CSd)");
 								}
 								String new_ccsID = "GLOBAL";
 								final IRasterLayer outputRaster = output_GAccCost;
