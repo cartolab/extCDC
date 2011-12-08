@@ -526,12 +526,13 @@ GeoAlgorithm {
 //					}
 
 					//					////////////////// Para parar en un punto conflictivo
-					//					if ((x1 == 5) && (y1 == 3) && (x2 == 5) && (y2 == 4)) {
-					//						//if ((orgSurfaceID == 5) && (dstSurfaceID == 3)) {
-					//						System.out.println("ZC_ORG: " + orgSurfaceID + "  X1, y1: " + x1 + "," + y1);
-					//						System.out.println("ZC_DST: " + dstSurfaceID + "  X2, y2: " + x2 + "," + y2);
-					//						//                     //                     System.out.println("PROBLEMS CONTINUE HERE!!!!!!!!!");
-					//					}
+										//if ((x1 == 5) && (y1 == 3) && (x2 == 5) && (y2 == 4)) {
+					if ((x2 == 0) && (y2 == 4)) {
+											//if ((orgSurfaceID == 5) && (dstSurfaceID == 3)) {
+											System.out.println(orgSurface.getCCSName() + " ZC_ORG: " + orgSurfaceID + "  X1, y1: " + x1 + "," + y1);
+											System.out.println(orgSurface.getCCSName() + " ZC_DST: " + dstSurfaceID + "  X2, y2: " + x2 + "," + y2);
+											System.out.println("PROBLEMS CONTINUE HERE!!!!!!!!! ");
+										}
 
 
 					//ALGORITHM CALCULUS
@@ -579,9 +580,7 @@ GeoAlgorithm {
 										double cost1 = orgCostValue;
 										double cost2 = surface.getCCValueAt(x2, y2);
 										orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
-										outputRaster.open();
 										dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
-										outputRaster.close();
 										setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, new_ccsID, iPoint);								
 									}
 								} 								
@@ -621,8 +620,6 @@ GeoAlgorithm {
 							}
 							final boolean dstHasSCC = auxSurf.hasConditionalCostValueAt(x2, y2);
 							if (dstHasSCC) {
-								//TODO
-								//CAC3
 								if (DEBUG) {
 									System.out.println("===============> CACid = CACio + d * ( CCio + CCid)");
 								}
@@ -630,11 +627,8 @@ GeoAlgorithm {
 								final IRasterLayer outputRaster = output_CondAccCosts.get(new_ccsID);
 								final double cost1 = auxSurf.getCCValueAt(x1, y1);
 								final double cost2 = auxSurf.getCCValueAt(x2, y2);
-								outputRaster.open();
 								orgAccCost = outputRaster.getCellValueAsDouble(x1, y1);
 								dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
-								outputRaster.close();
-
 								setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, new_ccsID, iPoint);
 							}
 
