@@ -1,32 +1,28 @@
 package es.udc.cartolab.accesTerrit;
 
-import org.apache.log4j.Logger;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.gvsig.fmap.raster.layers.FLyrRasterSE;
 
 import com.iver.andami.PluginServices;
 import com.iver.andami.plugins.Extension;
+import com.iver.andami.ui.mdiManager.IWindow;
+import com.iver.cit.gvsig.fmap.layers.FLayer;
+import com.iver.cit.gvsig.fmap.layers.FLayers;
 import com.iver.cit.gvsig.project.documents.view.gui.BaseView;
 
 import es.udc.cartolab.accesTerrit.gui.DialogDataInput;
-import es.unex.sextante.core.IInputFactory;
-import es.unex.sextante.dataObjects.IRasterLayer;
-import es.unex.sextante.gui.core.SextanteGUI;
 
 public class AccesTerritGuiExtension extends Extension {
 
-    private BaseView view = null;
-    private IRasterLayer[] rasters;
-
-    private static Logger logger = Logger.getLogger("AccesTerrit");
+    List<FLyrRasterSE> rasters;
 
     public void execute(String actionCommand) {
 
 	if (actionCommand.equals("gui")) {
-
-	    IInputFactory input = SextanteGUI.getInputFactory();
-	    input.createDataObjects();
-	    rasters = SextanteGUI.getInputFactory().getRasterLayers();
-	    DialogDataInput dialog = new DialogDataInput(rasters);
-
+	    DialogDataInput dialog = new DialogDataInput(rasters
+		    .toArray(new FLyrRasterSE[0]));
 	    PluginServices.getMDIManager().addWindow(dialog);
 	}
 
@@ -40,20 +36,31 @@ public class AccesTerritGuiExtension extends Extension {
     }
 
     public void initialize() {
-	// registerIcons();
-	/*
-	 * About about = (About) PluginServices.getExtension(About.class);
-	 * FPanelAbout panelAbout = about.getAboutPanel(); java.net.URL aboutURL
-	 * = this.getClass().getResource("/about.htm");
-	 * panelAbout.addAboutUrl("PlanSan Priorización", aboutURL);
-	 */
+	registerIcons();
     }
 
     public boolean isEnabled() {
-	return true;
+	IWindow window = PluginServices.getMDIManager().getActiveWindow();
+	if (window instanceof BaseView) {
+	    BaseView view = (BaseView) window;
+	    FLayers layers = view.getMapControl().getMapContext().getLayers();
+	    rasters = new ArrayList<FLyrRasterSE>();
+	    for (int i = 0; i < layers.getLayersCount(); i++) {
+		FLayer layer = layers.getLayer(i);
+		if (layer instanceof FLyrRasterSE)
+		    rasters.add((FLyrRasterSE) layer);
+	    }
+
+	    if (rasters.size() >= 3)
+		return true;
+	}
+	return false;
     }
 
     public boolean isVisible() {
-	return true;
+	IWindow window = PluginServices.getMDIManager().getActiveWindow();
+	if (window instanceof BaseView)
+	    return true;
+	return false;
     }
 }

@@ -17,13 +17,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import org.gvsig.fmap.raster.layers.FLyrRasterSE;
+
 import com.iver.andami.PluginServices;
 import com.iver.andami.ui.mdiManager.IWindow;
 import com.iver.andami.ui.mdiManager.WindowInfo;
 
 import es.udc.cartolab.accesTerrit.utils.AccesTerritParameters;
 import es.udc.cartolab.accesTerrit.utils.CsvFilter;
-import es.unex.sextante.dataObjects.IRasterLayer;
 
 public class DialogMatrix extends JPanel implements IWindow, ActionListener {
 
@@ -39,11 +40,10 @@ public class DialogMatrix extends JPanel implements IWindow, ActionListener {
     private JLabel[] labelsClassesRow;
     private JLabel[] labelsClassesColumn;
     private JCheckBox[][] checkBoxesNode;
-    private IRasterLayer[] rasters;
+    private FLyrRasterSE[] rasters;
     private AccesTerritParameters parameters;
 
     public WindowInfo getWindowInfo() {
-	// TODO Auto-generated method stub
 	if (viewInfo == null) {
 	    viewInfo = new WindowInfo(WindowInfo.MODALDIALOG
 		    | WindowInfo.PALETTE);
@@ -52,13 +52,13 @@ public class DialogMatrix extends JPanel implements IWindow, ActionListener {
 	    if (width < 380)
 		width = 380;
 	    viewInfo.setWidth(width);
-	    viewInfo.setHeight(80 + (35 * parameters.getClasses().size()));
+	    viewInfo.setHeight(95 + (35 * parameters.getClasses().size()));
 	}
 	return viewInfo;
 
     }
 
-    public DialogMatrix(AccesTerritParameters parameters, IRasterLayer[] rasters) {
+    public DialogMatrix(AccesTerritParameters parameters, FLyrRasterSE[] rasters) {
 	super();
 	this.rasters = rasters;
 	this.parameters = parameters;
@@ -324,6 +324,9 @@ public class DialogMatrix extends JPanel implements IWindow, ActionListener {
 
 	    parameters.setMatriz(matrix);
 
+	    // NACHOUVE ;-)
+	    // AQUI LLAMARIAMOS AL ALGORITMO PASÁNDOLE PARAMETERS, DONDE TENEMOS
+	    // TODOS LOS DATOS
 	    PluginServices.getMDIManager().closeWindow(this);
 	    return;
 

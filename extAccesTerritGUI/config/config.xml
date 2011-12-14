@@ -2,9 +2,11 @@
 <plugin-config>
 	<depends plugin-name="com.iver.cit.gvsig"/>
 	<depends plugin-name="es.unex.sextante"/>
+   <depends plugin-name="org.gvsig.remotesensing"/>
+   <depends plugin-name="org.gvsig.rastertools"/>
 	<libraries library-dir="lib"/>
 	<resourceBundle name="text"/>
-	<!-- <extensions>
+	<extensions>
 		<extension class-name="es.udc.cartolab.accesTerrit.AccesTerritGuiExtension" description="ACCESTERRIT_PANEL" active="true">
 			<tool-bar name="_acces_territ_tool-bar-name">
 				<action-tool icon="acces_territ-icon" tooltip="_acces_territ-launcher-tooltip"
@@ -14,5 +16,5 @@
 				action-command="gui" position="0"
 				 />
 		</extension>
-	</extensions> -->
+	</extensions>
 </plugin-config>

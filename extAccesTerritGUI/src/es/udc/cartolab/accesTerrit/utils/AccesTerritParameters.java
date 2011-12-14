@@ -8,45 +8,45 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Vector;
 
-import es.unex.sextante.dataObjects.IRasterLayer;
+import org.gvsig.fmap.raster.layers.FLyrRasterSE;
 
 public class AccesTerritParameters {
 
-    private IRasterLayer origen, zona_despl, scs;
-    private Collection<IRasterLayer> scc;
+    private FLyrRasterSE origen, zona_despl, scs;
+    private Collection<FLyrRasterSE> scc;
     private File destino;
     private Vector<AreaClass> clases = null;
     private Vector<Vector<Boolean>> matriz = null;
 
-    public IRasterLayer getOrigen() {
+    public FLyrRasterSE getOrigen() {
 	return origen;
     }
 
-    public void setOrigen(IRasterLayer origen) {
+    public void setOrigen(FLyrRasterSE origen) {
 	this.origen = origen;
     }
 
-    public IRasterLayer getZonaDespl() {
+    public FLyrRasterSE getZonaDespl() {
 	return zona_despl;
     }
 
-    public void setZonaDespl(IRasterLayer zonaDespl) {
+    public void setZonaDespl(FLyrRasterSE zonaDespl) {
 	zona_despl = zonaDespl;
     }
 
-    public IRasterLayer getScs() {
+    public FLyrRasterSE getScs() {
 	return scs;
     }
 
-    public void setScs(IRasterLayer scs) {
+    public void setScs(FLyrRasterSE scs) {
 	this.scs = scs;
     }
 
-    public Collection<IRasterLayer> getScc() {
+    public Collection<FLyrRasterSE> getScc() {
 	return scc;
     }
 
-    public void setScc(Collection<IRasterLayer> scc) {
+    public void setScc(Collection<FLyrRasterSE> scc) {
 	this.scc = scc;
     }
 
@@ -92,7 +92,7 @@ public class AccesTerritParameters {
 	    writer.append("scs;" + scs.getName() + "\n");
 	    writer.append("destino;" + destino.getAbsolutePath() + "\n");
 	    writer.append("scc\n");
-	    for (IRasterLayer raster : scc) {
+	    for (FLyrRasterSE raster : scc) {
 		writer.append(";" + raster.getName() + "\n");
 	    }
 	    writer.append("scc\n");
@@ -119,94 +119,84 @@ public class AccesTerritParameters {
 	}
     }
 
-    public void loadFromCSV(File inputCsv, IRasterLayer[] rasters) {
+    public void loadFromCSV(File inputCsv, FLyrRasterSE[] rasters) {
 	try {
 	    BufferedReader br = new BufferedReader(new FileReader(inputCsv));
 	    String line = "";
 	    line = br.readLine();
-	    while (line != null) {
+	    lines: while (line != null) {
 		String[] tokens = line.split(";");
 		if (tokens[0].equals("origen")) {
-		    for (IRasterLayer raster : rasters) {
+		    for (FLyrRasterSE raster : rasters) {
 			if (raster.getName().equals(tokens[1]))
 			    origen = raster;
 		    }
 		    line = br.readLine();
 		} else if (tokens[0].equals("zona_despl")) {
-		    for (IRasterLayer raster : rasters) {
+		    for (FLyrRasterSE raster : rasters) {
 			if (raster.getName().equals(tokens[1]))
 			    zona_despl = raster;
 		    }
 		    line = br.readLine();
-		    if (line == null)
-			return;
 		} else if (tokens[0].equals("destino")) {
 		    destino = new File(tokens[1]);
 		    line = br.readLine();
-		    if (line == null)
-			return;
 		} else if (tokens[0].equals("scs")) {
-		    for (IRasterLayer raster : rasters) {
+		    for (FLyrRasterSE raster : rasters) {
 			if (raster.getName().equals(tokens[1]))
 			    scs = raster;
 		    }
 		    line = br.readLine();
-		    if (line == null)
-			return;
 		} else if (tokens[0].equals("scc")) {
-		    scc = new Vector<IRasterLayer>();
+		    scc = new Vector<FLyrRasterSE>();
 		    line = br.readLine();
 		    if (line == null)
-			return;
+			break lines;
 		    tokens = line.split(";");
 		    while (!tokens[0].equals("scc")) {
-			for (IRasterLayer raster : rasters) {
+			for (FLyrRasterSE raster : rasters) {
 			    if (raster.getName().equals(tokens[1]))
 				scc.add(raster);
 			}
 			line = br.readLine();
 			if (line == null)
-			    return;
+			    break lines;
 			tokens = line.split(";");
 		    }
 		    line = br.readLine();
-		    if (line == null)
-			return;
 		} else if (tokens[0].equals("clases")) {
 		    clases = new Vector<AreaClass>();
 		    line = br.readLine();
 		    if (line == null)
-			return;
+			break lines;
 		    tokens = line.split(";");
 		    while (!tokens[0].equals("clases")) {
 			if (tokens[0].equals("clase")) {
 			    line = br.readLine();
 			    if (line == null)
-				return;
+				break lines;
 			    tokens = line.split(";");
 			    String areas = "";
 			    while (!tokens[0].equals("clase")) {
 				areas += line + "\n";
 				line = br.readLine();
 				if (line == null)
-				    return;
+				    break lines;
 				tokens = line.split(";");
 			    }
 			    clases.add(new AreaClass(areas, rasters));
 			    line = br.readLine();
 			    if (line == null)
-				return;
+				break lines;
 			    tokens = line.split(";");
 			}
 		    }
 		    line = br.readLine();
-		    if (line == null)
-			return;
 		} else if (tokens[0].equals("matriz")) {
 		    matriz = new Vector<Vector<Boolean>>();
 		    line = br.readLine();
 		    if (line == null)
-			return;
+			break lines;
 		    tokens = line.split(";");
 		    while (!tokens[0].equals("matriz")) {
 			Vector<Boolean> fila = new Vector<Boolean>();
@@ -216,18 +206,25 @@ public class AccesTerritParameters {
 			matriz.add(fila);
 			line = br.readLine();
 			if (line == null)
-			    return;
+			    break lines;
 			tokens = line.split(";");
 		    }
 		    line = br.readLine();
-		    if (line == null)
-			return;
 		} else {
 		    line = br.readLine();
-		    if (line == null)
-			return;
 		}
 	    }
+
+	    if ((clases != null)
+		    && (matriz != null)
+		    && (matriz.size() > 0)
+		    && (clases.size() > 0)
+		    && (matriz.get(0).size() > 0)
+		    && ((clases.size() != matriz.size()) || (clases.size() != matriz
+			    .get(0).size()))) {
+		matriz = null;
+	    }
+
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}

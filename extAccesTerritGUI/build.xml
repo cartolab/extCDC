@@ -39,9 +39,9 @@
 	  	<jar jarfile="${dist}/lib/${plugin}.jar" basedir="${build}" includes="es/udc/cartolab/**"
 	    />
 
-	  	<!--
-	  	<jar update="true" jarfile="${dist}/lib/${plugin}.jar" basedir="images" includes="*"/>
--->
+	  	<copy todir="${dist}/images">
+	  	  			<fileset dir="images" includes="*"/>
+	  	</copy>
 	  	<copy file="config/config.xml" todir="${dist}"/>
 	  	<copy todir="${dist}">
 	  	    	<fileset dir="config" includes="text*.properties"/>

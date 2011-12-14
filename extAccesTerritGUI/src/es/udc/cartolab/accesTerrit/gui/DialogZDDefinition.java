@@ -20,13 +20,14 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
+import org.gvsig.fmap.raster.layers.FLyrRasterSE;
+
 import com.iver.andami.PluginServices;
 import com.iver.andami.ui.mdiManager.IWindow;
 import com.iver.andami.ui.mdiManager.WindowInfo;
 
 import es.udc.cartolab.accesTerrit.utils.AccesTerritParameters;
 import es.udc.cartolab.accesTerrit.utils.AreaClass;
-import es.unex.sextante.dataObjects.IRasterLayer;
 
 public class DialogZDDefinition extends JPanel implements IWindow,
 	ActionListener {
@@ -44,7 +45,7 @@ public class DialogZDDefinition extends JPanel implements IWindow,
     private JLabel[] labelsClasses;
     private JCheckBox[] checkBoxesNode;
     private JTextField[] textFieldsNames;
-    private IRasterLayer[] rasters;
+    private FLyrRasterSE[] rasters;
     private Vector<String> options;
     private AccesTerritParameters parameters;
 
@@ -54,21 +55,24 @@ public class DialogZDDefinition extends JPanel implements IWindow,
 	    viewInfo = new WindowInfo(WindowInfo.MODALDIALOG
 		    | WindowInfo.RESIZABLE | WindowInfo.PALETTE);
 	    viewInfo.setTitle(PluginServices.getText(this, "ZD_Definition"));
-	    viewInfo.setWidth(700);
-	    viewInfo.setHeight(40 + (30 * this.parameters.getClasses().size()));
+	    viewInfo.setWidth(labelsClasses[0].getPreferredSize().width
+		    + textFieldsNames[0].getPreferredSize().width
+		    + combosRaster[0].getPreferredSize().width
+		    + checkBoxesNode[0].getPreferredSize().width + 240);
+	    viewInfo.setHeight(50 + (30 * this.parameters.getClasses().size()));
 	}
 	return viewInfo;
 
     }
 
     public DialogZDDefinition(AccesTerritParameters parameters,
-	    IRasterLayer[] rasters) {
+	    FLyrRasterSE[] rasters) {
 	super();
 	this.parameters = parameters;
 	this.rasters = rasters;
 	options = new Vector<String>();
 	options.add("");
-	for (IRasterLayer raster : parameters.getScc()) {
+	for (FLyrRasterSE raster : parameters.getScc()) {
 	    options.add(raster.getName());
 	}
 	Vector<AreaClass> classes = this.parameters.getClasses();
@@ -143,7 +147,10 @@ public class DialogZDDefinition extends JPanel implements IWindow,
 	    panelButtons = new JPanel();
 	    panelButtons.setLayout(layout);
 	    c.anchor = GridBagConstraints.SOUTHWEST;
-	    c.insets = new Insets(12, 6, 0, getWindowInfo().getWidth() - 230);
+	    c.insets = new Insets(12, 6, 0, getWindowInfo().getWidth()
+		    - (getCancelButton().getPreferredSize().width
+			    + getPrevButton().getPreferredSize().width
+			    + getOkButton().getPreferredSize().width + 40));
 	    layout.setConstraints(getCancelButton(), c);
 	    c.anchor = GridBagConstraints.SOUTHEAST;
 	    c.insets = new Insets(12, 0, 0, 6);
@@ -228,7 +235,7 @@ public class DialogZDDefinition extends JPanel implements IWindow,
 	    this.parameters.getClasses().get(i).setNombre(
 		    textFieldsNames[i].getText());
 	    if (combosRaster[i].getSelectedIndex() > 0) {
-		for (IRasterLayer raster : parameters.getScc()) {
+		for (FLyrRasterSE raster : parameters.getScc()) {
 		    if (raster.getName().equals(
 			    options.get(combosRaster[i].getSelectedIndex()))) {
 			this.parameters.getClasses().get(i).setEdc(raster);

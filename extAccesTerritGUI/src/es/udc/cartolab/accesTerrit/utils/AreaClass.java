@@ -1,15 +1,15 @@
 package es.udc.cartolab.accesTerrit.utils;
 
-import es.unex.sextante.dataObjects.IRasterLayer;
+import org.gvsig.fmap.raster.layers.FLyrRasterSE;
 
 public class AreaClass {
 
     private int clase;
     private String nombre = null;
-    private IRasterLayer edc;
+    private FLyrRasterSE edc;
     private boolean nodo = false;
 
-    public AreaClass(String csv, IRasterLayer[] rasters) {
+    public AreaClass(String csv, FLyrRasterSE[] rasters) {
 	String[] lines = csv.split("\n");
 	String line;
 	for (int i = 0; i < lines.length; i++) {
@@ -22,7 +22,7 @@ public class AreaClass {
 		    nombre = tokens[2];
 		} else if (tokens[1].compareTo("edc") == 0) {
 		    if (tokens.length > 2)
-			for (IRasterLayer raster : rasters) {
+			for (FLyrRasterSE raster : rasters) {
 			    if (raster.getName().compareTo(tokens[2]) == 0)
 				edc = raster;
 			}
@@ -63,11 +63,11 @@ public class AreaClass {
 	this.nombre = nombre;
     }
 
-    public IRasterLayer getEdc() {
+    public FLyrRasterSE getEdc() {
 	return edc;
     }
 
-    public void setEdc(IRasterLayer edc) {
+    public void setEdc(FLyrRasterSE edc) {
 	this.edc = edc;
     }
 

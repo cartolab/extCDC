@@ -25,13 +25,14 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.filechooser.FileSystemView;
 
+import org.gvsig.fmap.raster.layers.FLyrRasterSE;
+
 import com.iver.andami.PluginServices;
 import com.iver.andami.ui.mdiManager.IWindow;
 import com.iver.andami.ui.mdiManager.WindowInfo;
 
 import es.udc.cartolab.accesTerrit.utils.AccesTerritParameters;
 import es.udc.cartolab.accesTerrit.utils.CsvFilter;
-import es.unex.sextante.dataObjects.IRasterLayer;
 
 public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 
@@ -41,14 +42,15 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
     private JButton okButton = null;
     private JButton loadButton = null;
     private JButton sccButton = null;
+    private JLabel sccLabel = null;
     private JPanel panelButtons = null;
     private JComboBox comboZDRaster = null;
     private JComboBox comboInputRaster = null;
     private JComboBox comboSCSRaster = null;
     private JTextField fieldOutputDirectory = null;
     private JButton dotsButtonOutput = null;
-    private IRasterLayer[] rasters;
-    private Collection<IRasterLayer> sccs = new HashSet<IRasterLayer>();
+    private FLyrRasterSE[] rasters;
+    private Collection<FLyrRasterSE> sccs = new HashSet<FLyrRasterSE>();
     private Vector<String> options;
     private AccesTerritParameters parameters;
 
@@ -57,19 +59,23 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 	    viewInfo = new WindowInfo(WindowInfo.MODALDIALOG
 		    | WindowInfo.PALETTE);
 	    viewInfo.setTitle(PluginServices.getText(this, "Input"));
-	    viewInfo.setWidth(480);
+	    if ((sccLabel != null) && (sccButton != null))
+		viewInfo.setWidth(sccLabel.getPreferredSize().width
+			+ sccButton.getPreferredSize().width + 50);
+	    else
+		viewInfo.setWidth(480);
 	    viewInfo.setHeight(180);
 	}
 	return viewInfo;
 
     }
 
-    public DialogDataInput(IRasterLayer[] rasters) {
+    public DialogDataInput(FLyrRasterSE[] rasters) {
 	super();
 	this.parameters = new AccesTerritParameters();
 	this.rasters = rasters;
 	options = new Vector<String>();
-	for (IRasterLayer raster : rasters) {
+	for (FLyrRasterSE raster : rasters) {
 	    options.add(raster.getName());
 	}
 
@@ -81,13 +87,13 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
     }
 
     public DialogDataInput(AccesTerritParameters parameters,
-	    IRasterLayer[] rasters) {
+	    FLyrRasterSE[] rasters) {
 	super();
 	this.parameters = parameters;
 	this.rasters = rasters;
 	this.sccs = parameters.getScc();
 	options = new Vector<String>();
-	for (IRasterLayer raster : rasters) {
+	for (FLyrRasterSE raster : rasters) {
 	    options.add(raster.getName());
 	}
 
@@ -172,7 +178,7 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 		panelButtons.setLayout(layout);
 		c.anchor = GridBagConstraints.SOUTHWEST;
 		c.insets = new Insets(12, 6, 0,
-			getWindowInfo().getWidth() - 160);
+			getWindowInfo().getWidth() - 180);
 		layout.setConstraints(getCancelButton(), c);
 		c.anchor = GridBagConstraints.SOUTHEAST;
 		c.insets = new Insets(12, 0, 0, 6);
@@ -190,7 +196,7 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 			| WindowInfo.PALETTE);
 		viewInfo.setTitle(PluginServices.getText(this, "SCCs"));
 		viewInfo.setWidth(320);
-		viewInfo.setHeight(30 + (30 * rasters.length));
+		viewInfo.setHeight(50 + (30 * rasters.length));
 	    }
 	    return viewInfo;
 	}
@@ -305,7 +311,10 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 	    panelButtons = new JPanel();
 	    panelButtons.setLayout(layout);
 	    c.anchor = GridBagConstraints.SOUTHWEST;
-	    c.insets = new Insets(12, 6, 0, getWindowInfo().getWidth() - 250);
+	    c.insets = new Insets(12, 0, 0, getWindowInfo().getWidth()
+		    - (getOkButton().getPreferredSize().width
+			    + getLoadButton().getPreferredSize().width
+			    + getCancelButton().getPreferredSize().width + 40));
 	    layout.setConstraints(getCancelButton(), c);
 	    c.anchor = GridBagConstraints.SOUTHEAST;
 	    c.insets = new Insets(12, 0, 0, 6);
@@ -368,8 +377,8 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 	// FILA 4
 
 	super.setLayout(layout);
-	JLabel SCCLabel = new JLabel(PluginServices.getText(this, "SCC"));
-	super.add(SCCLabel, "1, 4");
+	sccLabel = new JLabel(PluginServices.getText(this, "SCC"));
+	super.add(sccLabel, "1, 4");
 
 	sccButton.setPreferredSize(new Dimension(200, 20));
 	super.add(sccButton, "2, 4, 3, 4, LEFT, CENTER");
@@ -404,70 +413,31 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 
     }
 
-    private boolean checkScc(IRasterLayer scc, IRasterLayer zonaDespl) {
+    private Integer[] retrieveClasses(FLyrRasterSE zd) {
 
-	scc.setFullExtent();
-
-	scc.open();
-
-	try {
-	    scc.postProcess();
-	} catch (final Exception e) {
-	    e.printStackTrace();
-	}
-
-	int m_iNX = scc.getNX();
-	int m_iNY = scc.getNY();
-
-	// CHECK THAT THERE IS SOME DATA IN THE INTERSECTION
-	for (int y = 0; y < m_iNY; y++) {
-	    for (int x = 0; x < m_iNX; x++) {
-		final int value = scc.getCellValueAsInt(x, y);
-		if (!scc.isNoDataValue(value)
-			&& zonaDespl.getLayerGridExtent().containsCell(x, y)) {
-		    return true;
-		}
-	    }
-	}
-
-	return false;
-
-    }
-
-    private Integer[] retrieveClasses(IRasterLayer zd) {
-
-	zd.setFullExtent();
-
-	zd.open();
-
-	try {
-	    zd.postProcess();
-	} catch (final Exception e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	}
-
-	int m_iNX = zd.getNX();
-	int m_iNY = zd.getNY();
+	int m_iNX = (int) zd.getDataSource().getWidth();
+	int m_iNY = (int) zd.getDataSource().getHeight();
 
 	// COUNT DIFFERENT VALUES
 	final HashSet<Integer> surfacesID = new HashSet<Integer>();
 	for (int y = 0; y < m_iNY; y++) {
 	    for (int x = 0; x < m_iNX; x++) {
-		final int value = zd.getCellValueAsInt(x, y);
-		if (!zd.isNoDataValue(value) && !surfacesID.contains(value)) {
-		    surfacesID.add(value);
+		int value;
+		try {
+		    value = (Integer) zd.getDataSource().getData(x, y, 0);
+		    if (value != (int) zd.getDataSource().getNoDataValue()
+			    && !surfacesID.contains(value)) {
+			surfacesID.add(value);
+		    }
+
+		} catch (Exception e) {
+		    e.printStackTrace();
 		}
 	    }
 	}
 
 	return surfacesID.toArray(new Integer[0]);
 
-    }
-
-    private boolean isAInsideB(IRasterLayer a, IRasterLayer b) {
-	return a.getLayerGridExtent().getAsJTSGeometry().coveredBy(
-		b.getLayerGridExtent().getAsJTSGeometry());
     }
 
     private void loadCsv() {
@@ -495,6 +465,31 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 
 	}
 
+    }
+
+    private boolean checkUniqueRasters() {
+	HashSet<FLyrRasterSE> set = new HashSet<FLyrRasterSE>();
+	boolean unique = true;
+	unique &= set.add(parameters.getOrigen());
+	unique &= set.add(parameters.getZonaDespl());
+	unique &= set.add(parameters.getScs());
+	for (FLyrRasterSE raster : parameters.getScc())
+	    unique &= set.add(raster);
+	return unique;
+    }
+
+    private boolean checkScsSccSameSize() {
+	FLyrRasterSE scs = parameters.getScs();
+	int x = (int) scs.getDataSource().getWidth();
+	int y = (int) scs.getDataSource().getHeight();
+
+	for (FLyrRasterSE scc : parameters.getScc())
+	    if ((((int) scc.getDataSource().getWidth()) != x)
+		    || (((int) scc.getDataSource().getHeight()) != y)) {
+		return false;
+	    }
+
+	return true;
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -531,7 +526,7 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 
 	    if (comboZDRaster.getSelectedIndex() != -1) {
 
-		IRasterLayer zd = rasters[comboZDRaster.getSelectedIndex()];
+		FLyrRasterSE zd = rasters[comboZDRaster.getSelectedIndex()];
 		if ((this.parameters.getZonaDespl() != rasters[comboZDRaster
 			.getSelectedIndex()])
 			|| (this.parameters.getClasses() == null)) {
@@ -548,44 +543,21 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 		this.parameters.setDestino(new File(fieldOutputDirectory
 			.getText()));
 
-		if (!isAInsideB(this.parameters.getOrigen(), this.parameters
-			.getZonaDespl())) {
+		if (!checkUniqueRasters()) {
 		    JOptionPane.showMessageDialog(this, PluginServices.getText(
-			    this, "ErrorOrigenMessage"), PluginServices
-			    .getText(this, "ErrorOrigenTitle"),
+			    this, "ErrorUniqueRastersMessage"), PluginServices
+			    .getText(this, "ErrorUniqueRastersTitle"),
 			    JOptionPane.ERROR_MESSAGE);
 		    return;
 		}
 
-		if (!isAInsideB(this.parameters.getZonaDespl(), this.parameters
-			.getScs())) {
+		if (!checkScsSccSameSize()) {
 		    JOptionPane.showMessageDialog(this, PluginServices.getText(
-			    this, "ErrorZDMessage"), PluginServices.getText(
-			    this, "ErrorZDTitle"), JOptionPane.ERROR_MESSAGE);
+			    this, "ErrorSCCMessage"), PluginServices.getText(
+			    this, "ErrorSCCTitle"), JOptionPane.ERROR_MESSAGE);
 		    return;
 		}
 
-		boolean sccsValid = true;
-		Vector<String> invalidSccs = new Vector<String>();
-		for (IRasterLayer raster : this.parameters.getScc()) {
-		    boolean sccValid = checkScc(raster, this.parameters
-			    .getZonaDespl());
-		    if (!sccValid)
-			invalidSccs.add(raster.getName());
-		    sccsValid &= sccValid;
-		}
-
-		if (!sccsValid) {
-		    String names = "";
-		    for (String name : invalidSccs) {
-			names += "\n\t- " + name;
-		    }
-		    JOptionPane.showMessageDialog(this, PluginServices.getText(
-			    this, "ErrorSCCMessage")
-			    + names, PluginServices.getText(this,
-			    "ErrorSCCTitle"), JOptionPane.ERROR_MESSAGE);
-		    return;
-		}
 		DialogZDDefinition dialog = new DialogZDDefinition(parameters,
 			rasters);
 		PluginServices.getMDIManager().closeWindow(this);
