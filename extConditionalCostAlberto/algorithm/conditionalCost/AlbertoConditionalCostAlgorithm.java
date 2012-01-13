@@ -451,13 +451,13 @@ GeoAlgorithm {
 			//            System.out.println(count++ + "------ m_CentralPoints.size(): " + m_CentralPoints.size() + "/" + iPt);
 			//            System.out.println(count++ + "------ m_AdjPoints.size(): " + m_AdjPoints.size() + "/" + iPt);
 			//            System.out.println();
-			System.out.println();
+			/*System.out.println();
 			System.out.println();
 			System.out.println("------------ m_CentralPoints.size(): " + m_CentralPoints.size());
 
-			//NachoV: Ahora acabo de poner esta ordenacion antes del iter... ¿¿¿Es correcto???
+			//NachoV: Ahora acabo de poner esta ordenacion antes del iter... ¿¿¿Es correcto???*/
 			Collections.sort(m_CentralPoints, new XYGridcellValue_Comparator());
-			final Iterator iter = m_CentralPoints.iterator();
+			/*final Iterator iter = m_CentralPoints.iterator();
 			while (iter.hasNext()) {
 				final Object[] ccsID_cellValue = (Object[]) iter.next();
 				final String ccsID = (String) ccsID_cellValue[0];
@@ -468,7 +468,7 @@ GeoAlgorithm {
 				System.out.println("x,y: (" + x1 + ", " + y1 + ") ccsID: [" + ccsID + "] Value: " + value);
 			}
 			System.out.println();
-			System.out.println();
+			System.out.println();*/
 
 			//final Object[] ccsID_GridCell_value = (Object[]) m_CentralPoints.get(iPt);
 			final Object[] ccsID_cellValue = (Object[]) m_CentralPoints.get(0);
@@ -521,7 +521,7 @@ GeoAlgorithm {
 					//					////////////////// Para parar en un punto conflictivo
 //										if ((x1 == 2) && (y1 == 3) && (x2 == 1) && (y2 == 4)) {
 					boolean stop = false;
-					if ((x2 == 1) && (y2 == 4)) {
+					/*if ((x2 == 1) && (y2 == 4)) {
 						stop = true;
 											//if ((orgSurfaceID == 5) && (dstSurfaceID == 3)) {
 						System.out.println("CSS: [" + orgSurface.getCCSName() + "] ZC_ORG: " + orgSurfaceID + "  X1, y1: " + x1 + "," + y1);
@@ -529,7 +529,7 @@ GeoAlgorithm {
 						System.out.println("PROBLEMS CONTINUE HERE!!!!!!!!! ");
 						System.out.println("nullCostOrg: " + !m_Cost.isNoDataValue(orgCostValue) +" NullCostDst : " +  !m_Cost.isNoDataValue(dstCostValue) +" costOrg>0: " +(orgCostValue > 0) +
 								"(dstCostValue > 0): " + (dstCostValue > 0)+" canMove: "+canMove(orgSurface, dstSurface, orgSurfaceID, dstSurfaceID));
-					}
+					}*/
 
 					//ALGORITHM CALCULUS
 					if (!m_Cost.isNoDataValue(orgCostValue) && !m_Cost.isNoDataValue(dstCostValue) && (orgCostValue > 0)
@@ -551,6 +551,9 @@ GeoAlgorithm {
 								if ((surface == null)) {
 									continue;
 								}
+
+								surface.setWindowExtent(m_AnalysisExtent);
+								surface.setInterpolationMethod(IRasterLayer.INTERPOLATION_BSpline);
 
 								if (surface.getCellValueAsDouble(x1, y1)>-1) {
 									orgHasSomeCondCostValue = true;
