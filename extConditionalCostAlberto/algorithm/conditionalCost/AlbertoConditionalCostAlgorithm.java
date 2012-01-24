@@ -18,6 +18,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *******************************************************************************/
 package es.udc.sextante.gridAnalysis.conditionalCost_alberto;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -287,7 +288,12 @@ GeoAlgorithm {
 		for (String k : input_Cond_Costs.keySet()) {
 			i++;
 			final String name = OUTPUT_CONDITIONAL_COSTS + Integer.toString(i);
-			final IOutputChannel channel = getMyOutputChannel(String.valueOf(k));
+			String path = ((FileOutputChannel) input_Cond_Costs.get(k)
+					.getOutputChannel()).getFilename();
+			int pos = path.lastIndexOf(File.separator);
+			String folder = path.substring(0, pos);
+			final IOutputChannel channel = new FileOutputChannel(folder
+					+ File.separator + k + "_output.tif");
 			/////// REVISAR COMO SE USA AHORA LA EXTENT
 			final IRasterLayer cac = m_OutputFactory.getNewRasterLayer(name, IRasterLayer.RASTER_DATA_TYPE_DOUBLE, m_AnalysisExtent,
 					1, channel, input_crs);
@@ -445,7 +451,9 @@ GeoAlgorithm {
 		int count = 0;
 		m_AdjPointsMap = new HashMap();
 		while ((m_CentralPoints.size() != 0) && !m_Task.isCanceled()) {
-			System.out.println("iter[[" + count++ + "]] --------------------------------   m_CentralPoints.size(): " + m_CentralPoints.size());
+			if (DEBUG) {
+				System.out.println("iter[[" + count++ + "]] --------------------------------   m_CentralPoints.size(): " + m_CentralPoints.size());
+			}
 			//TODO Get MINOR VALUE on !!!!
 			//for (iPt = 0; iPt < m_CentralPoints.size(); iPt++) {
 			//            System.out.println(count++ + "------ m_CentralPoints.size(): " + m_CentralPoints.size() + "/" + iPt);
@@ -479,9 +487,14 @@ GeoAlgorithm {
 			x1 = cell.getX();
 			y1 = cell.getY();
 			
-			System.out.println("\n********************");
-			System.out.println("New Origen----> x,y: (" + x1 + ", " + y1 + ") " + orgSurfID_Name + " -- " + value);
-			System.out.println("********************");
+			if (DEBUG) {
+				System.out.println("\n********************");
+				System.out.println("New Origen----> x,y: ("
+						+ x1 + ", " + y1 + ") "
+						+ orgSurfID_Name + " -- "
+						+ value);
+				System.out.println("********************");
+			}
 			
 			iPoint = (int) cell.getValue();
 			orgCostValue = m_Cost.getCellValueAsDouble(x1, y1);
@@ -562,8 +575,11 @@ GeoAlgorithm {
 								if (surface.getCellValueAsDouble(x2, y2)>-1) {
 									dstHasSomeCondCostValue = true;
 								}
-
-								System.out.println("SCCk: " + k);
+								if (DEBUG) {
+									System.out
+											.println("SCCk: "
+													+ k);
+								}
 								if (dstHasSomeCondCostValue) {
 									//TODO 
 									if (orgSurface.isNode() && orgSurface.getCCSName()==k){
@@ -601,7 +617,9 @@ GeoAlgorithm {
 
 						} else {
 							//NO ES GLOBAL
-							System.out.println("NO ES GLOBAL: [" + orgSurfID_Name + "]");
+							if (DEBUG) {
+								System.out.println("NO ES GLOBAL: [" + orgSurfID_Name + "]");
+							}
 							IRasterLayer auxSurf = null;
 							
 							String surfName = "";
@@ -653,7 +671,7 @@ GeoAlgorithm {
 					}
 				}
 			}
-			setProgressText(Integer.toString(m_CentralPoints.size()));
+			// setProgressText(Integer.toString(m_CentralPoints.size()));
 
 		} // For para recorrer celdas
 		m_AdjPointsMap.clear();
@@ -689,25 +707,53 @@ GeoAlgorithm {
 		final double dstAccCost = orgAccCost + ((cost1 + cost2) * dist);
 		
 		//if (x == 1 && y == 5){
-		if (orgAccCost == -1){
-			System.out.print("");
+		if (DEBUG) {
+			if (orgAccCost == -1) {
+				System.out.print("");
+			}
+
+			System.out.println("cost1: " + cost1 + " cost2: "
+					+ cost2);
+			System.out.println("prevDstAccCost: " + prevDstAccCost
+					+ "  orgAccCost: " + orgAccCost);
+			System.out
+					.println(outputLayer.getName() + "["
+							+ x + ", " + y
+							+ "] to set?: "
+							+ dstAccCost);
 		}
-		
-		System.out.println("cost1: " + cost1 + " cost2: " + cost2);
-		System.out.println("prevDstAccCost: " + prevDstAccCost + "  orgAccCost: " + orgAccCost);
-		System.out.println(outputLayer.getName() + "[" + x + ", " + y + "] to set?: " + dstAccCost);
 		//TODO Esto puede pasar????
 		if (dstAccCost < 0) {
-			System.out.println(" Esto puede pasar???? --------------------- dstAccCost < 0.0");
+			if (DEBUG) {
+				System.out.println(" Esto puede pasar???? --------------------- dstAccCost < 0.0");
+			}
 			return;
 		}
 
 		if (outputLayer.isNoDataValue(prevDstAccCost) || (prevDstAccCost > dstAccCost)) {
-			System.out.println("SET!!!!!!!!!! " + outputLayer.getOutputChannel());
-			System.out.println("before: " + outputLayer.getCellValueAsDouble(x, y));
+			if (DEBUG) {
+				System.out
+						.println("SET!!!!!!!!!! "
+								+ outputLayer
+										.getOutputChannel());
+				System.out
+						.println("before: "
+								+ outputLayer
+										.getCellValueAsDouble(
+												x,
+												y));
+			}
 			outputLayer.setCellValue(x, y, dstAccCost);
-			System.out.println("after: " + outputLayer.getCellValueAsDouble(x, y));
-			if (outputLayer.getCellValueAsDouble(x, y) != dstAccCost){
+			if (DEBUG) {
+				System.out
+						.println("after: "
+								+ outputLayer
+										.getCellValueAsDouble(
+												x,
+												y));
+			}
+			if ((outputLayer.getCellValueAsDouble(x, y) != dstAccCost)
+					&& DEBUG) {
 				System.out.println("Why!!!!!!!!!!!!??????? " + dstAccCost +" != "+ outputLayer.getCellValueAsDouble(x, y));
 			}
 			m_ClosestPoint.setCellValue(x, y, iPoint);
@@ -719,17 +765,23 @@ GeoAlgorithm {
 			final String x_y_id = String.valueOf(x) + "_" + String.valueOf(y) + "_" + String.valueOf(ccsID);
 			System.out.println("Size: " + m_AdjPointsMap.size());
 			if (!m_AdjPointsMap.containsKey(x_y_id)) {
-				System.out.println("Added to the central_points!! --> " + x_y_id + "\n");
+				if (DEBUG) {
+					System.out.println("Added to the central_points!! --> " + x_y_id + "\n");
+				}
 				m_CentralPoints.add(cssID_cellValue);
 				m_AdjPointsMap.put(x_y_id, x_y_id);
 			} else {
-				System.out.println("Remove/Added to the central_points!! --> " + x_y_id + "\n");
+				if (DEBUG) {
+					System.out.println("Remove/Added to the central_points!! --> " + x_y_id + "\n");
+				}
 				m_AdjPointsMap.remove(x_y_id);
 				m_CentralPoints.add(cssID_cellValue);
 				m_AdjPointsMap.put(x_y_id, x_y_id);
 			}
 		} else {
-			System.out.println("Not set!! \n");
+			if (DEBUG) {
+				System.out.println("Not set!! \n");
+			}
 		}
 	}
 
