@@ -10,31 +10,33 @@ public class AreaClass {
     private boolean nodo = false;
 
     public AreaClass(String csv, FLyrRasterSE[] rasters) {
-	String[] lines = csv.split("\n");
-	String line;
-	for (int i = 0; i < lines.length; i++) {
-	    line = lines[i];
-	    String[] tokens = line.split(";");
-	    if (tokens.length >= 2) {
-		if (tokens[1].compareTo("clase") == 0) {
-		    clase = Integer.parseInt(tokens[2]);
-		} else if (tokens[1].compareTo("nombre") == 0) {
-		    nombre = tokens[2];
-		} else if (tokens[1].compareTo("edc") == 0) {
-		    if (tokens.length > 2)
-			for (FLyrRasterSE raster : rasters) {
-			    if (raster.getName().compareTo(tokens[2]) == 0)
-				edc = raster;
-			}
-		} else if (tokens[1].compareTo("nodo") == 0) {
-		    nodo = Boolean.parseBoolean(tokens[2]);
-		}
-	    }
-	}
+        String[] lines = csv.split("\n");
+        String line;
+        for (int i = 0; i < lines.length; i++) {
+            line = lines[i];
+            String[] tokens = line.split(";");
+            if (tokens.length >= 2) {
+                if (tokens[1].compareTo("clase") == 0) {
+                    clase = Integer.parseInt(tokens[2]);
+                } else if (tokens[1].compareTo("nombre") == 0) {
+                    nombre = tokens[2];
+                } else if (tokens[1].compareTo("edc") == 0) {
+                    if (tokens.length > 2) {
+                        for (FLyrRasterSE raster : rasters) {
+                            if (raster.getName().compareTo(tokens[2]) == 0) {
+                                edc = raster;
+                            }
+                        }
+                    }
+                } else if (tokens[1].compareTo("nodo") == 0) {
+                    nodo = Boolean.parseBoolean(tokens[2]);
+                }
+            }
+        }
     }
 
     public AreaClass(int clase) {
-	this.clase = clase;
+        this.clase = clase;
     }
 
     /*
@@ -48,41 +50,41 @@ public class AreaClass {
      */
 
     public int getClase() {
-	return clase;
+        return clase;
     }
 
     public void setClase(int clase) {
-	this.clase = clase;
+        this.clase = clase;
     }
 
     public String getNombre() {
-	return nombre;
+        return nombre;
     }
 
     public void setNombre(String nombre) {
-	this.nombre = nombre;
+        this.nombre = nombre;
     }
 
     public FLyrRasterSE getEdc() {
-	return edc;
+        return edc;
     }
 
     public void setEdc(FLyrRasterSE edc) {
-	this.edc = edc;
+        this.edc = edc;
     }
 
     public boolean isNodo() {
-	return nodo;
+        return nodo;
     }
 
     public void setNodo(boolean nodo) {
-	this.nodo = nodo;
+        this.nodo = nodo;
     }
 
     public String getCsv() {
-	String edcName = (edc == null) ? "" : edc.getName();
-	return ";clase;" + clase + "\n;nombre;" + nombre + "\n;edc;" + edcName
-		+ "\n;nodo;" + Boolean.toString(nodo) + "\n";
+        String edcName = (edc == null) ? "" : edc.getName();
+        return ";clase;" + clase + "\n;nombre;" + nombre + "\n;edc;" + edcName
+                + "\n;nodo;" + Boolean.toString(nodo) + "\n";
     }
 
 }
