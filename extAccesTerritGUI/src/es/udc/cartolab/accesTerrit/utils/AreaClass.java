@@ -6,7 +6,7 @@ public class AreaClass {
 
     private int clase;
     private String nombre = null;
-    private FLyrRasterSE edc;
+    private FLyrRasterSE edc = null;
     private boolean nodo = false;
 
     public AreaClass(String csv, FLyrRasterSE[] rasters) {
@@ -85,6 +85,19 @@ public class AreaClass {
         String edcName = (edc == null) ? "" : edc.getName();
         return ";clase;" + clase + "\n;nombre;" + nombre + "\n;edc;" + edcName
                 + "\n;nodo;" + Boolean.toString(nodo) + "\n";
+    }
+
+    public Object[] getTableRecord() {
+        String edc_name;
+        if (edc == null) {
+            edc_name = "--";
+        } else {
+            edc_name = edc.getName();
+        }
+
+        Object[] record = { clase, nombre, edc_name, nodo };
+
+        return record;
     }
 
 }

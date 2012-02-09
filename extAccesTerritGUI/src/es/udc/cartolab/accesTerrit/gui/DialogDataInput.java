@@ -10,6 +10,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Vector;
@@ -33,6 +34,7 @@ import com.iver.andami.ui.mdiManager.WindowInfo;
 
 import es.udc.cartolab.accesTerrit.utils.AccesTerritParameters;
 import es.udc.cartolab.accesTerrit.utils.CsvFilter;
+import es.udc.cartolab.accesTerrit.utils.Preferences;
 
 public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 
@@ -446,7 +448,18 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 
     private void loadCsv() {
 
-        JFileChooser chooser = new JFileChooser();
+        String latestCsv = null;
+        boolean fileError = false;
+        try {
+            latestCsv = Preferences.getPreferences().getLatestCsv();
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Hubo algún problema al leer la configuración.", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            fileError = true;
+            e.printStackTrace();
+        }
+        JFileChooser chooser = new JFileChooser(latestCsv);
         chooser.setFileFilter(new CsvFilter());
         chooser.setDialogTitle(PluginServices.getText(this, "ChooseFile"));
         int returnVal = chooser.showOpenDialog(this);
@@ -461,8 +474,18 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
                 return;
             }
 
+            if (!fileError) {
+                try {
+                    Preferences.getPreferences().setLatestCsv(csv.getAbsolutePath());
+                } catch (IOException e) {
+                    JOptionPane.showMessageDialog(this,
+                            "Hubo algún problema al guardar la configuración.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    e.printStackTrace();
+                }
+            }
             parameters.loadFromCSV(csv, rasters);
-            DialogDataInput dialog = new DialogDataInput(parameters, rasters);
+            DialogMatrix dialog = new DialogMatrix(parameters, rasters);
             PluginServices.getMDIManager().closeWindow(this);
             PluginServices.getMDIManager().addWindow(dialog);
             return;
@@ -523,9 +546,8 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
         }
 
         if (e.getSource() == loadButton) {
-
             loadCsv();
-
+            return;
         }// if okButton
 
         if (e.getSource() == okButton) {

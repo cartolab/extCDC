@@ -6,9 +6,15 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Vector;
 
 import org.gvsig.fmap.raster.layers.FLyrRasterSE;
+
+import es.unex.sextante.dataObjects.IRasterLayer;
+import es.unex.sextante.gvsig.core.gvRasterLayer;
+import es.unex.sextante.gvsig.core.gvTable;
+import es.unex.sextante.outputs.NullOutputChannel;
 
 public class AccesTerritParameters {
 
@@ -241,5 +247,70 @@ public class AccesTerritParameters {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public gvTable getMovementConstraintsTable() {
+
+        gvTable table = new gvTable();
+
+        Class[] types = new Class[matriz.size() + 1];
+        types[0] = Integer.class;
+
+        String[] fields = new String[matriz.size() + 1];
+        fields[0] = "ZONES";
+
+        for (int i = 1; i <= matriz.size(); i++) {
+            types[i] = Boolean.class;
+            fields[i] = Integer.toString(i);
+        }
+
+        table.create("Movement_constraints", new NullOutputChannel(), types,
+                fields);
+
+        for (int i = 0; i < matriz.size(); i++) {
+            Object[] record = new Object[matriz.size() + 1];
+            record[0] = Integer.toString(i + 1);
+            for (int j = 0; j < matriz.get(i).size(); j++) {
+                record[j + 1] = matriz.get(i).get(j);
+            }
+            table.addRecord(record);
+        }
+
+        return table;
+
+    }
+
+    public gvTable getMovementSurfaceGroupsTable() {
+
+        gvTable table = new gvTable();
+
+        Class[] types = { Integer.class, String.class, String.class,
+                Boolean.class };
+
+        String[] fields = { "Z_Class", "Z_Name", "CSS", "IS_NODE" };
+
+        table.create("Movement_Surfaces_Groups", new NullOutputChannel(),
+                types, fields);
+
+        for (int i = 0; i < clases.size(); i++) {
+            table.addRecord(clases.get(i).getTableRecord());
+        }
+
+        return table;
+
+    }
+
+    public Collection<? extends IRasterLayer> getSccSextante() {
+        Iterator<FLyrRasterSE> iter = scc.iterator();
+        Collection<gvRasterLayer> rasters = new Vector<gvRasterLayer>();
+
+        while (iter.hasNext()) {
+            gvRasterLayer raster = new gvRasterLayer();
+            raster.create(iter.next());
+            raster.open();
+            rasters.add(raster);
+        }
+
+        return rasters;
     }
 }

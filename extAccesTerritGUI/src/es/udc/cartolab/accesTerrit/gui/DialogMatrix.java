@@ -280,9 +280,18 @@ public class DialogMatrix extends JPanel implements IWindow, ActionListener {
                     break;
                 }
             }
-            if (csv.canWrite()) {
-                parameters.writeToCSV(csv);
-            } else {
+            try {
+                if ((csv.canWrite()) || (!csv.exists() && csv.createNewFile())) {
+                    parameters.writeToCSV(csv);
+                } else {
+                    JOptionPane.showMessageDialog(this, PluginServices.getText(
+                            this, "ErrorCsvSaveMessage"), PluginServices
+                            .getText(this, "ErrorCsvSaveTitle"),
+                            JOptionPane.ERROR_MESSAGE);
+                    saveCsv();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(this, PluginServices.getText(
                         this, "ErrorCsvSaveMessage"), PluginServices.getText(
                         this, "ErrorCsvSaveTitle"), JOptionPane.ERROR_MESSAGE);
@@ -332,7 +341,14 @@ public class DialogMatrix extends JPanel implements IWindow, ActionListener {
             // NACHOUVE ;-)
             // AQUI LLAMARIAMOS AL ALGORITMO PASÁNDOLE PARAMETERS, DONDE TENEMOS
             // TODOS LOS DATOS
+
             PluginServices.getMDIManager().closeWindow(this);
+            (new Thread(new Runnable() {
+                public void run() {
+                    AlgorithmExecutor.createAndShowGUI(parameters);
+                }
+            })).start();
+
             return;
 
         }// if okButton
@@ -381,6 +397,10 @@ public class DialogMatrix extends JPanel implements IWindow, ActionListener {
 
         }// if uncheckButton
     }// actionPerformed
+
+    public void executeAlgorithm() {
+
+    }
 
     @Override
     public Object getWindowProfile() {

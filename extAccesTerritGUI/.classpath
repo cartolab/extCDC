@@ -6,9 +6,11 @@
 	<classpathentry kind="src" path="/_fwAndami"/>
 	<classpathentry kind="src" path="/appgvSIG"/>
 	<classpathentry kind="lib" path="/libFMap/lib/gdbms-0.8-SNAPSHOT.jar" sourcepath="/libGDBMS"/>
-	<classpathentry kind="lib" path="/libFMap/lib/org.gvsig.raster.jar" sourcepath="/libRaster/src"/>
 	<classpathentry kind="lib" path="/extRemoteSensing/lib/TableLayout.jar"/>
-	<classpathentry kind="lib" path="/libFMap/lib/org.gvsig.fmap.raster.jar" sourcepath="/extRasterTools-SE"/>
 	<classpathentry kind="lib" path="/libFMap/lib/org.cresques.cts.jar" sourcepath="/libProjection/src"/>
+	<classpathentry kind="src" path="/sextante"/>
+	<classpathentry kind="src" path="/gvsig_1_x_bindings"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/libRaster"/>
+	<classpathentry kind="src" path="/extRasterTools-SE"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
