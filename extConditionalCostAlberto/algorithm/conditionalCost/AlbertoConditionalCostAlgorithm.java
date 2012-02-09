@@ -20,13 +20,17 @@ package es.udc.sextante.gridAnalysis.conditionalCost_alberto;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
 import es.unex.sextante.additionalInfo.AdditionalInfoMultipleInput;
+import es.unex.sextante.core.AnalysisExtent;
 import es.unex.sextante.core.GeoAlgorithm;
+import es.unex.sextante.core.OutputFactory;
+import es.unex.sextante.core.OutputObjectsSet;
 import es.unex.sextante.core.Sextante;
 import es.unex.sextante.dataObjects.IRasterLayer;
 import es.unex.sextante.dataObjects.IRecord;
@@ -65,6 +69,7 @@ GeoAlgorithm {
 	public static final String            DISTANCE                       = "DISTANCE";
 
 	//public static final String THRESHOLD = "THRESHOLD";
+    public static final String OUTPUT = "OUTPUT_FOLDER";
 	public static final String            OUTPUT_ACCCOST                 = "ACCCOST";
 	public static final String            OUTPUT_CLOSESTPOINT            = "CLOSESTPOINT";
 	public static final String            OUTPUT_CONDITIONAL_COSTS       = "COND_COST";
@@ -91,7 +96,6 @@ GeoAlgorithm {
 	private HashMap<String, IRasterLayer> output_CondAccCosts;
 
 	private IRasterLayer                  m_ClosestPoint;
-	private HashMap<String, IRasterLayer> m_Cond_ClosestPoint;
 
 	private ArrayList                     m_CentralPoints;
 	private HashMap                       m_AdjPointsMap;
@@ -125,11 +129,9 @@ GeoAlgorithm {
 
 			m_Parameters.addInputTable(MOVEMENT_CONSTRAINTS_TABLE, "Movement_constraints", true);
 
-			addOutputRasterLayer(OUTPUT_CONDITIONAL_COSTS, Sextante.getText("Conditional_Costs"));
+            m_Parameters.addFilepath(OUTPUT, Sextante
+                    .getText("Output_folder_path"), true, false, (String) null);
 
-			addOutputRasterLayer(OUTPUT_ACCCOST, Sextante.getText("Accumulated_cost"));
-			// addOutputRasterLayer(ACCCOST, Sextante.getText("Accumulated_cost"));
-			addOutputRasterLayer(OUTPUT_CLOSESTPOINT, Sextante.getText("Closest_points"));
 			m_Parameters.addSelection(DISTANCE, Sextante.getText("Type_of_distance"), sOptions);
 
 		}
@@ -150,229 +152,299 @@ GeoAlgorithm {
 	private void initConstraints() throws WrongParameterTypeException, WrongParameterIDException, NullParameterValueException,
 	IteratorException {
 
+        final ITable movSurfGroupsTable = m_Parameters
+                .getParameterValueAsTable(MOVEMENT_SURFACES_GROUPS_TABLE);
+
+        //Init map of surfacesID and MovSurface
+        initMovementSurfaceMap(movSurfGroupsTable);
+
 		final ITable movConstraintTable = m_Parameters.getParameterValueAsTable(MOVEMENT_CONSTRAINTS_TABLE);
-		final int numConstraint = movConstraintTable.getFieldCount();
 
-		final ArrayList<Integer> ids = new ArrayList<Integer>();
-		for (int i = 1; i < numConstraint; i++) {
-			final int id = Integer.parseInt(movConstraintTable.getFieldName(i));
-			ids.add(id);
-		}
+        //Init movement surfaces constraints
+        initMovementSurfaceConstraints(movConstraintTable);
 
-		//TODO Default should be more elegant!
-		final HashMap<Integer, Boolean> defaultConstraintsMap = new HashMap<Integer, Boolean>();
-		for (final Iterator<Integer> iter = ids.iterator(); iter.hasNext();) {
-			final int id = iter.next();
-			defaultConstraintsMap.put(id, true);
-		}
+    }
+
+    public OutputObjectsSet compute(ITable movConstraintTable,
+            ITable movSurfGroupsTable,
+            Collection<? extends IRasterLayer> costs_surfaces,
+            IRasterLayer m_Movement_Surfaces, IRasterLayer m_Cost,
+            IRasterLayer m_Orig_Dest, int m_iDistance, String outputPath,
+            OutputFactory output_factory, AnalysisExtent analysis_extent)
+            throws GeoAlgorithmExecutionException {
+
+        this.m_Cost = m_Cost;
+        this.m_Orig_Dest = m_Orig_Dest;
+        this.m_Movement_Surfaces = m_Movement_Surfaces;
+        this.m_iDistance = m_iDistance;
+
+        m_AnalysisExtent = analysis_extent;
+        m_OutputFactory = output_factory;
+
+        //TODO Now It suppose that are ordered
+        input_Cond_Costs = new HashMap<String, IRasterLayer>();
+        output_CondAccCosts = new HashMap<String, IRasterLayer>();
+
+        Iterator<? extends IRasterLayer> iter = costs_surfaces.iterator();
+        while (iter.hasNext()) {
+            final IRasterLayer cost_grid = iter.next();
+            String costgridname = cost_grid.getName();
+            input_Cond_Costs.put(costgridname, cost_grid);
+        }
+
+        m_Movement_Surfaces.setFullExtent();
+
+        m_Movement_Surfaces.open();
+
+        final Object input_crs = m_Movement_Surfaces.getCRS();
+        //final GridExtent input_extent = new GridExtent(m_Movement_Surfaces);
+
+        try {
+            m_Movement_Surfaces.postProcess();
+        } catch (final Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        m_iNX = m_Movement_Surfaces.getNX();
+        m_iNY = m_Movement_Surfaces.getNY();
+
+        //Init map of surfacesID and MovSurface
+        initMovementSurfaceMap(movSurfGroupsTable);
+
+        //Init movement surfaces constraints
+        initMovementSurfaceConstraints(movConstraintTable);
+
+        //COUNT DIFFERENT VALUES
+        final HashSet<Integer> surfacesID = new HashSet<Integer>();
+        for (int y = 0; y < m_iNY; y++) {
+            for (int x = 0; x < m_iNX; x++) {
+                final int value = m_Movement_Surfaces.getCellValueAsInt(x, y);
+                //              if (value == ORG_DST_DATA){
+                //                  continue;
+                //              }
+                if (!m_Movement_Surfaces.isNoDataValue(value)
+                        && !surfacesID.contains(value)) {
+                    surfacesID.add(value);
+                }
+            }
+        }
+
+        int x, y;
+        int iPoint = 1;
+        double dValue;
+
+        m_CentralPoints = new ArrayList();
+
+        //m_dThreshold = m_Parameters.getParameterValueAsDouble(THRESHOLD);
+
+        IOutputChannel channel = new FileOutputChannel(outputPath
+                + File.separator + "acc_cost_output.tif");
+        output_GAccCost = m_OutputFactory.getNewRasterLayer(OUTPUT_ACCCOST,
+                IRasterLayer.RASTER_DATA_TYPE_DOUBLE, m_AnalysisExtent, 1,
+                channel, input_crs);
+
+        output_GAccCost.setFullExtent();
+        output_GAccCost.open();
+
+        output_GAccCost.setNoDataValue(NO_DATA);
+        output_GAccCost.assignNoData();
+
+        //TODO Esto debe hacerse al final de todo al tener la capa ya creadita
+        addOutputRasterLayer(OUTPUT_ACCCOST, OUTPUT_ACCCOST, 1, channel,
+                output_GAccCost);
+
+        channel = new FileOutputChannel(outputPath + File.separator
+                + "closest_point_output.tif");
+        m_ClosestPoint = m_OutputFactory.getNewRasterLayer(OUTPUT_CLOSESTPOINT,
+                IRasterLayer.RASTER_DATA_TYPE_INT, m_AnalysisExtent, 1,
+                channel, input_crs);
+
+        m_ClosestPoint.setFullExtent();
+        m_ClosestPoint.open();
+
+        m_ClosestPoint.setNoDataValue(NO_DATA);
+        m_ClosestPoint.assignNoData();
+
+        //TODO Esto debe hacerse al final de todo al tener la capa ya creadita
+        addOutputRasterLayer(OUTPUT_CLOSESTPOINT, OUTPUT_CLOSESTPOINT, 1,
+                channel, m_ClosestPoint);
+
+        //final GridExtent extent = output_GAccCost.getWindowGridExtent();
+
+        m_Cost.setWindowExtent(m_AnalysisExtent);
+        m_Cost.setInterpolationMethod(IRasterLayer.INTERPOLATION_BSpline);
+
+        m_Orig_Dest.setWindowExtent(m_AnalysisExtent);
+        m_Orig_Dest
+                .setInterpolationMethod(IRasterLayer.INTERPOLATION_NearestNeighbour);
+
+        m_iNX = m_Cost.getNX();
+        m_iNY = m_Cost.getNY();
+
+        //TODO HOW TO SAVE IN A USER FOLDER!???!?!??!?!
+        // TEST /////////////////////
+        //final IRasterLayer[] result = new IRasterLayer[surfacesID.size()];
+        //CREATING OUTPUT RASTERS
+        int i = 0;
+        for (String k : input_Cond_Costs.keySet()) {
+            i++;
+            final String name = "CONDCOST_" + k.toUpperCase();
+            channel = new FileOutputChannel(outputPath + File.separator + k
+                    + "_output.tif");
+            /////// REVISAR COMO SE USA AHORA LA EXTENT
+            final IRasterLayer cac = m_OutputFactory.getNewRasterLayer(name,
+                    IRasterLayer.RASTER_DATA_TYPE_DOUBLE, m_AnalysisExtent, 1,
+                    channel, input_crs);
+
+            cac.setWindowExtent(m_AnalysisExtent);
+            cac.open();
+
+            cac.setNoDataValue(NO_DATA);
+            cac.assignNoData();
+
+            //TODO Esto debe hacerse al final de todo al tener la capa ya creadita
+            addOutputRasterLayer(name, name, 1, channel, cac);
+
+            cac.close();
+            output_CondAccCosts.put(k, cac);
+            cac.open();
+        }
+
+        //      ///////////////////////////////////
+        //      final String name = OUTPUT_ACCCOST + Integer.toString(i);
+        //      final IOutputChannel channel = getMyOutputChannel(name);
+        //      addOutputRasterLayer(name, name, 1, channel, output_GAccCost);
+        //      output_GAccCost.open();
+        //      output_GAccCost.setNoDataValue(NO_DATA);
+        //      output_GAccCost.assignNoData();
+        //
+        //      output_GAccCost.close();
 
 
-		for (final IRecordsetIterator iter = movConstraintTable.iterator(); iter.hasNext();) {
-			final IRecord values = iter.next();
+        //INITIALIZING...
+        for (y = 0; y < m_iNY; y++) {
+            for (x = 0; x < m_iNX; x++) {
+                dValue = m_Orig_Dest.getCellValueAsDouble(x, y);
+                //if ((dValue != 0.0) && !m_Orig_Dest.isNoDataValue(dValue)) {
+                if (!m_Orig_Dest.isNoDataValue(dValue)) {
+                    // Store the GridCell and of its CostSurface (-1 means Global Cost Surface)
+                    final Object[] ccs_cellValue = new Object[3];
+                    // "GLOBAL" if is simple... otherwise it is ccsID number
+                    ccs_cellValue[0] = "GLOBAL";
+                    ccs_cellValue[1] = new GridCell(x, y, iPoint);
+                    ccs_cellValue[2] = 0.0;
+                    m_CentralPoints.add(ccs_cellValue);
+                    output_GAccCost.setCellValue(x, y, 0.0);
+                    m_ClosestPoint.setCellValue(x, y, iPoint);
+                    //               for (final String k : m_Cond_CentralPoints.keySet()) {
+                    //                  final ArrayList centralPoints = m_Cond_CentralPoints.get(k);
+                    //                  centralPoints.add(new GridCell(x, y, iPoint));
+                    //               }
+                    for (final String k : output_CondAccCosts.keySet()) {
+                        final IRasterLayer out_acccost = output_CondAccCosts
+                                .get(k);
+                        //TODO Add on m_CentralPoints????
 
-			final HashMap<Integer, Boolean> constraintsMap = new HashMap<Integer, Boolean>();
-			//TODO It should be a hashMap with surfacesID, not a Array
-			final int surfID = Integer.parseInt(values.getValue(0).toString());
-			for (final Integer id : ids) {
-				final String v = values.getValue(id).toString();
-				constraintsMap.put(id, isTrue(v));
-			}
-			final MovementSurface surface = surfacesMap.get(surfID);
-			if (surface != null) {
-				surface.setMovConstraints(constraintsMap);
-			}
-			else {
-				//TODO
-				System.out.println("ERROR: Any surface with ID ---------------> " + surfID);
-			}
-		}
-	}
+                        //System.out.println(out_acccost.getCellValueAsDouble(x, y));
+                        out_acccost.setCellValue(x, y, 0.0);
+                        //System.out.println(out_acccost.getCellValueAsDouble(x, y));
+
+                    }
+                    //               for (final String k : m_Cond_ClosestPoint.keySet()) {
+                    //                  final IRasterLayer closestPoints = m_Cond_ClosestPoint.get(k);
+                    //                  closestPoints.setCellValue(x, y, iPoint);
+                    //               }
+
+                    iPoint++;
+                }
+            }
+        }
+        System.out
+                .println("--------------------------------   m_CentralPoints.size(): "
+                        + m_CentralPoints.size());
+
+        if (m_iDistance != WINDOW5X5) {
+            calculateCost3X3();
+        }
+        //              else{
+        //                  calculateCost5X5();
+        //              }
+
+        return m_OutputObjects;
+
+    }
 
 
 	@Override
-	public boolean processAlgorithm() throws GeoAlgorithmExecutionException {
+    public boolean processAlgorithm() throws GeoAlgorithmExecutionException {
 
-		final ITable movSurfGroupsTable = m_Parameters.getParameterValueAsTable(MOVEMENT_SURFACES_GROUPS_TABLE);
+	    final ITable movSurfGroupsTable = m_Parameters
+                .getParameterValueAsTable(MOVEMENT_SURFACES_GROUPS_TABLE);
 
-		//TODO Create objects!!
-		final ArrayList<IRasterLayer> costs_surfaces_array = m_Parameters.getParameterValueAsArrayList(CONDITIONAL_COST_SURFACES);
+        final ITable movConstraintTable = m_Parameters
+                .getParameterValueAsTable(MOVEMENT_CONSTRAINTS_TABLE);
 
-		//TODO Now It suppose that are ordered
-		input_Cond_Costs = new HashMap<String, IRasterLayer>();
-		output_CondAccCosts = new HashMap<String, IRasterLayer>();
-		for (int i = 0; i < costs_surfaces_array.size(); i++) {
-			final IRasterLayer cost_grid = costs_surfaces_array.get(i);
-			String costgridname = cost_grid.getName();
-			input_Cond_Costs.put(costgridname, cost_grid);
-		}
+        final ArrayList<IRasterLayer> costs_surfaces_array = m_Parameters
+                .getParameterValueAsArrayList(CONDITIONAL_COST_SURFACES);
 
-		m_Movement_Surfaces = m_Parameters.getParameterValueAsRasterLayer(MOVEMENT_SURFACES);
-		m_Movement_Surfaces.setFullExtent();
+        m_Movement_Surfaces = m_Parameters
+                .getParameterValueAsRasterLayer(MOVEMENT_SURFACES);
+        m_Cost = m_Parameters.getParameterValueAsRasterLayer(COST);
+        m_Orig_Dest = m_Parameters.getParameterValueAsRasterLayer(ORIG_DEST);
+        m_iDistance = m_Parameters.getParameterValueAsInt(DISTANCE);
+        String outputPath = m_Parameters.getParameterValueAsString(OUTPUT);
 
-		m_Movement_Surfaces.open();
+        compute(movConstraintTable, movSurfGroupsTable,
+                costs_surfaces_array, m_Movement_Surfaces, m_Cost, m_Orig_Dest,
+                m_iDistance, outputPath, m_OutputFactory, m_AnalysisExtent);
 
-		final Object input_crs = m_Movement_Surfaces.getCRS();
-		//final GridExtent input_extent = new GridExtent(m_Movement_Surfaces);
-
-		try {
-			m_Movement_Surfaces.postProcess();
-		}
-		catch (final Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		m_iNX = m_Movement_Surfaces.getNX();
-		m_iNY = m_Movement_Surfaces.getNY();
-
-		//COUNT DIFFERENT VALUES
-		final HashSet<Integer> surfacesID = new HashSet<Integer>();
-		final int counter = 0;
-		for (int y = 0; y < m_iNY; y++) {
-			for (int x = 0; x < m_iNX; x++) {
-				final int value = m_Movement_Surfaces.getCellValueAsInt(x, y);
-				//				if (value == ORG_DST_DATA){
-				//					continue;
-				//				}
-				if (!m_Movement_Surfaces.isNoDataValue(value) && !surfacesID.contains(value)) {
-					surfacesID.add(value);
-				}
-			}
-		}
-
-		//Init map of surfacesID and MovSurface
-		initMovementSurfaceMap(movSurfGroupsTable);
-
-		//Init map of surfacesID
-		initConstraints();
-
-		int x, y;
-		int iPoint = 1;
-		double dValue;
-
-		m_CentralPoints = new ArrayList();
-
-		m_Cost = m_Parameters.getParameterValueAsRasterLayer(COST);
-		m_Orig_Dest = m_Parameters.getParameterValueAsRasterLayer(ORIG_DEST);
-		m_iDistance = m_Parameters.getParameterValueAsInt(DISTANCE);
-
-		//m_dThreshold = m_Parameters.getParameterValueAsDouble(THRESHOLD);
-
-		output_GAccCost = getNewRasterLayer(OUTPUT_ACCCOST, Sextante.getText("Accumulated_cost"),
-				IRasterLayer.RASTER_DATA_TYPE_DOUBLE);
-		m_ClosestPoint = getNewRasterLayer(OUTPUT_CLOSESTPOINT, Sextante.getText("Closest_points"),
-				IRasterLayer.RASTER_DATA_TYPE_INT);
-
-		//final GridExtent extent = output_GAccCost.getWindowGridExtent();
-
-		m_Cost.setWindowExtent(m_AnalysisExtent);
-		m_Cost.setInterpolationMethod(IRasterLayer.INTERPOLATION_BSpline);
-
-		m_Orig_Dest.setWindowExtent(m_AnalysisExtent);
-		m_Orig_Dest.setInterpolationMethod(IRasterLayer.INTERPOLATION_NearestNeighbour);
-
-		m_iNX = m_Cost.getNX();
-		m_iNY = m_Cost.getNY();
-
-		output_GAccCost.setNoDataValue(NO_DATA);
-		output_GAccCost.assignNoData();
-
-		m_ClosestPoint.setNoDataValue(NO_DATA);
-		m_ClosestPoint.assignNoData();
-
-		//TODO HOW TO SAVE IN A USER FOLDER!???!?!??!?!
-		// TEST /////////////////////
-		//final IRasterLayer[] result = new IRasterLayer[surfacesID.size()];
-		//CREATING OUTPUT RASTERS
-		int i = 0;
-		for (String k : input_Cond_Costs.keySet()) {
-			i++;
-			final String name = OUTPUT_CONDITIONAL_COSTS + Integer.toString(i);
-			String path = ((FileOutputChannel) input_Cond_Costs.get(k)
-					.getOutputChannel()).getFilename();
-			int pos = path.lastIndexOf(File.separator);
-			String folder = path.substring(0, pos);
-			final IOutputChannel channel = new FileOutputChannel(folder
-					+ File.separator + k + "_output.tif");
-			/////// REVISAR COMO SE USA AHORA LA EXTENT
-			final IRasterLayer cac = m_OutputFactory.getNewRasterLayer(name, IRasterLayer.RASTER_DATA_TYPE_DOUBLE, m_AnalysisExtent,
-					1, channel, input_crs);
-
-			cac.setWindowExtent(m_AnalysisExtent);
-			cac.open();
-
-			cac.setNoDataValue(NO_DATA);
-			cac.assignNoData();
-
-			//TODO Esto debe hacerse al final de todo al tener la capa ya creadita
-			addOutputRasterLayer(name, name, 1, channel, cac);
-
-			cac.close();
-			output_CondAccCosts.put(k, cac);
-			cac.open();
-		}
-
-		//      ///////////////////////////////////
-		//      final String name = OUTPUT_ACCCOST + Integer.toString(i);
-		//      final IOutputChannel channel = getMyOutputChannel(name);
-		//      addOutputRasterLayer(name, name, 1, channel, output_GAccCost);
-		//      output_GAccCost.open();
-		//      output_GAccCost.setNoDataValue(NO_DATA);
-		//      output_GAccCost.assignNoData();
-		//
-		//      output_GAccCost.close();
-
-
-		//INITIALIZING...
-		for (y = 0; y < m_iNY; y++) {
-			for (x = 0; x < m_iNX; x++) {
-				dValue = m_Orig_Dest.getCellValueAsDouble(x, y);
-				//if ((dValue != 0.0) && !m_Orig_Dest.isNoDataValue(dValue)) {
-				if (!m_Orig_Dest.isNoDataValue(dValue)) {
-					// Store the GridCell and of its CostSurface (-1 means Global Cost Surface)
-					final Object[] ccs_cellValue = new Object[3];
-					// "GLOBAL" if is simple... otherwise it is ccsID number
-					ccs_cellValue[0] = "GLOBAL";
-					ccs_cellValue[1] = new GridCell(x, y, iPoint);
-					ccs_cellValue[2] = 0.0;
-					m_CentralPoints.add(ccs_cellValue);
-					output_GAccCost.setCellValue(x, y, 0.0);
-					m_ClosestPoint.setCellValue(x, y, iPoint);
-					//               for (final String k : m_Cond_CentralPoints.keySet()) {
-					//                  final ArrayList centralPoints = m_Cond_CentralPoints.get(k);
-					//                  centralPoints.add(new GridCell(x, y, iPoint));
-					//               }
-					for (final String k : output_CondAccCosts.keySet()) {
-						final IRasterLayer out_acccost = output_CondAccCosts.get(k);
-						//TODO Add on m_CentralPoints????
-						
-						//System.out.println(out_acccost.getCellValueAsDouble(x, y));
-						out_acccost.setCellValue(x, y, 0.0);
-						//System.out.println(out_acccost.getCellValueAsDouble(x, y));
-					
-					}
-					//               for (final String k : m_Cond_ClosestPoint.keySet()) {
-					//                  final IRasterLayer closestPoints = m_Cond_ClosestPoint.get(k);
-					//                  closestPoints.setCellValue(x, y, iPoint);
-					//               }
-
-					iPoint++;
-				}
-			}
-		}
-		System.out.println("--------------------------------   m_CentralPoints.size(): " + m_CentralPoints.size());
-
-		if (m_iDistance != WINDOW5X5) {
-			calculateCost3X3();
-		}
-		//				else{
-		//					calculateCost5X5();
-		//				}
-
-		return !m_Task.isCanceled();
+        return !m_Task.isCanceled();
 
 	}
 
+
+    private void initMovementSurfaceConstraints(ITable movConstraintTable)
+            throws IteratorException {
+
+        final int numConstraint = movConstraintTable.getFieldCount();
+
+        final ArrayList<Integer> ids = new ArrayList<Integer>();
+        for (int i = 1; i < numConstraint; i++) {
+            final int id = Integer.parseInt(movConstraintTable.getFieldName(i));
+            ids.add(id);
+        }
+
+        //TODO Default should be more elegant!
+        final HashMap<Integer, Boolean> defaultConstraintsMap = new HashMap<Integer, Boolean>();
+        for (final Iterator<Integer> iter = ids.iterator(); iter.hasNext();) {
+            final int id = iter.next();
+            defaultConstraintsMap.put(id, true);
+        }
+
+
+        for (final IRecordsetIterator iter = movConstraintTable.iterator(); iter
+                .hasNext();) {
+            final IRecord values = iter.next();
+
+            final HashMap<Integer, Boolean> constraintsMap = new HashMap<Integer, Boolean>();
+            //TODO It should be a hashMap with surfacesID, not a Array
+            final int surfID = Integer.parseInt(values.getValue(0).toString());
+            for (final Integer id : ids) {
+                final String v = values.getValue(id).toString();
+                constraintsMap.put(id, isTrue(v));
+            }
+            final MovementSurface surface = surfacesMap.get(surfID);
+            if (surface != null) {
+                surface.setMovConstraints(constraintsMap);
+            } else {
+                //TODO
+                System.out
+                        .println("ERROR: Any surface with ID ---------------> "
+                                + surfID);
+            }
+        }
+    }
 
 	private void initMovementSurfaceMap(ITable movSurfGroupsTable) throws IteratorException {
 		HashMap<Integer, MovementSurface> movSurfaceMap = new HashMap<Integer, MovementSurface>();
@@ -384,8 +456,8 @@ GeoAlgorithm {
 			//3" IS_NODE";
 			final Object[] values = record.getValues();
 			final int id_class = Integer.parseInt(values[0].toString());
-			final String name = (String) values[1];
-			final String css = (String) values[2];
+            final String name = values[1].toString();
+            final String css = values[2].toString();
 			final boolean is_node = isTrue(values[3].toString());
 			//TODO Number or Name of the GRID???
 			//    	    final String cost_grid = values[4].toString().replaceAll("\"", "");
@@ -401,7 +473,6 @@ GeoAlgorithm {
 	private void calculateCost3X3() {
 
 		int i, j;
-		final int iPt;
 		int iPoint;
 		int x1, y1, x2, y2;
 		double orgAccCost;
@@ -450,7 +521,12 @@ GeoAlgorithm {
 
 		int count = 0;
 		m_AdjPointsMap = new HashMap();
-		while ((m_CentralPoints.size() != 0) && !m_Task.isCanceled()) {
+        while (m_CentralPoints.size() != 0) {
+
+            if ((m_Task != null) && (m_Task.isCanceled())) {
+                break;
+            }
+
 			if (DEBUG) {
 				System.out.println("iter[[" + count++ + "]] --------------------------------   m_CentralPoints.size(): " + m_CentralPoints.size());
 			}
