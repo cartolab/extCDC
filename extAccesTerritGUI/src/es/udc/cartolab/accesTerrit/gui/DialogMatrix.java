@@ -265,7 +265,11 @@ public class DialogMatrix extends JPanel implements IWindow, ActionListener {
         chooser.setDialogTitle(PluginServices.getText(this, "ChooseFile"));
         int returnVal = chooser.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File csv = new File(chooser.getSelectedFile().getAbsolutePath());
+            String path = chooser.getSelectedFile().getAbsolutePath();
+            if (!path.endsWith(".csv")) {
+                path += ".csv";
+            }
+            File csv = new File(path);
             if (csv.exists()) {
                 switch (JOptionPane.showConfirmDialog(this, PluginServices
                         .getText(this, "ReplaceFileMessage"), PluginServices
