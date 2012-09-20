@@ -74,7 +74,7 @@ GeoAlgorithm {
 	public static final String            OUTPUT_CLOSESTPOINT            = "CLOSESTPOINT";
 	public static final String            OUTPUT_CONDITIONAL_COSTS       = "COND_COST";
 
-	private static final int              NO_DATA                        = -1;
+	private static final int              NO_DATA                        = -99999;
 	private static final int              ORG_DST_DATA                   = 0;
 
 	public static final int               EUCLIDEAN                      = 0;
@@ -237,15 +237,20 @@ GeoAlgorithm {
         m_CentralPoints = new ArrayList();
 
         //m_dThreshold = m_Parameters.getParameterValueAsDouble(THRESHOLD);
-
-        IOutputChannel channel = new FileOutputChannel(outputPath
-                + File.separator + "acc_cost_output.tif");
+        String baseOutput = "acc_cost_output";
+        String output = baseOutput;
+        File file = new File(outputPath + File.separator + output + ".tif");
+        int f = 1;
+        /*while (file.exists()) {
+        	output = baseOutput + "_" + new Integer(f++).toString();
+        	file = new File(outputPath + File.separator + output + ".tif");
+        }*/
+        IOutputChannel channel = new FileOutputChannel(file.getAbsolutePath());
         output_GAccCost = m_OutputFactory.getNewRasterLayer(OUTPUT_ACCCOST,
                 IRasterLayer.RASTER_DATA_TYPE_DOUBLE, m_AnalysisExtent, 1,
                 channel, input_crs);
 
         output_GAccCost.setFullExtent();
-        output_GAccCost.open();
 
         output_GAccCost.setNoDataValue(NO_DATA);
         output_GAccCost.assignNoData();
@@ -254,14 +259,20 @@ GeoAlgorithm {
         addOutputRasterLayer(OUTPUT_ACCCOST, OUTPUT_ACCCOST, 1, channel,
                 output_GAccCost);
 
-        channel = new FileOutputChannel(outputPath + File.separator
-                + "closest_point_output.tif");
+        baseOutput = "closest_point_output";
+        output = baseOutput;
+        file = new File(outputPath + File.separator + output + ".tif");
+        /*f = 1;
+        while (file.exists()) {
+        	output = baseOutput + "_" + new Integer(f++).toString();
+        	file = new File(outputPath + File.separator + output + ".tif");
+        }*/
+        channel = new FileOutputChannel(file.getAbsolutePath());
         m_ClosestPoint = m_OutputFactory.getNewRasterLayer(OUTPUT_CLOSESTPOINT,
                 IRasterLayer.RASTER_DATA_TYPE_INT, m_AnalysisExtent, 1,
                 channel, input_crs);
 
         m_ClosestPoint.setFullExtent();
-        m_ClosestPoint.open();
 
         m_ClosestPoint.setNoDataValue(NO_DATA);
         m_ClosestPoint.assignNoData();
@@ -290,15 +301,22 @@ GeoAlgorithm {
         for (String k : input_Cond_Costs.keySet()) {
             i++;
             final String name = "CONDCOST_" + k.toUpperCase();
-            channel = new FileOutputChannel(outputPath + File.separator + k
-                    + "_output.tif");
+
+            baseOutput = k + "_output";
+            output = baseOutput;
+            file = new File(outputPath + File.separator + output + ".tif");
+            /*f = 1;
+            while (file.exists()) {
+            	output = baseOutput + "_" + new Integer(f++).toString();
+            	file = new File(outputPath + File.separator + output + ".tif");
+            }*/
+            channel = new FileOutputChannel(file.getAbsolutePath());
             /////// REVISAR COMO SE USA AHORA LA EXTENT
             final IRasterLayer cac = m_OutputFactory.getNewRasterLayer(name,
                     IRasterLayer.RASTER_DATA_TYPE_DOUBLE, m_AnalysisExtent, 1,
                     channel, input_crs);
 
             cac.setWindowExtent(m_AnalysisExtent);
-            cac.open();
 
             cac.setNoDataValue(NO_DATA);
             cac.assignNoData();
@@ -308,7 +326,6 @@ GeoAlgorithm {
 
             cac.close();
             output_CondAccCosts.put(k, cac);
-            cac.open();
         }
 
         //      ///////////////////////////////////
