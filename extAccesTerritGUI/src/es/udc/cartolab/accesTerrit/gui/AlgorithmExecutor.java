@@ -243,7 +243,7 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
                             }
                         }
                         // Cerrar las capas sería lo correcto, pero consume una cantidad decente de tiempo
-                        //dataObject.close();
+                        dataObject.close();
                     }
                 }
             }
