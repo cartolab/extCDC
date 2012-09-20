@@ -9,7 +9,6 @@ import com.iver.andami.PluginServices;
 import com.iver.andami.plugins.Extension;
 import com.iver.andami.ui.mdiManager.IWindow;
 import com.iver.cit.gvsig.fmap.layers.FLayer;
-import com.iver.cit.gvsig.fmap.layers.FLayers;
 import com.iver.cit.gvsig.project.documents.view.gui.BaseView;
 
 import es.udc.cartolab.accesTerrit.gui.DialogDataInput;
@@ -43,10 +42,9 @@ public class AccesTerritGuiExtension extends Extension {
         IWindow window = PluginServices.getMDIManager().getActiveWindow();
         if (window instanceof BaseView) {
             BaseView view = (BaseView) window;
-            FLayers layers = view.getMapControl().getMapContext().getLayers();
+            FLayer[] layers = view.getMapControl().getMapContext().getLayers().getVisibles();
             rasters = new ArrayList<FLyrRasterSE>();
-            for (int i = 0; i < layers.getLayersCount(); i++) {
-                FLayer layer = layers.getLayer(i);
+            for (FLayer layer:layers) {
                 if (layer instanceof FLyrRasterSE) {
                     rasters.add((FLyrRasterSE) layer);
                 }
