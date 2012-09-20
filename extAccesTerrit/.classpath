@@ -9,8 +9,8 @@
 	<classpathentry kind="lib" path="/extRemoteSensing/lib/TableLayout.jar"/>
 	<classpathentry kind="lib" path="/libFMap/lib/org.cresques.cts.jar" sourcepath="/libProjection/src"/>
 	<classpathentry kind="src" path="/sextante"/>
-	<classpathentry kind="src" path="/gvsig_1_x_bindings"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/libRaster"/>
 	<classpathentry kind="src" path="/extRasterTools-SE"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/gvsig_1_x_bindings"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

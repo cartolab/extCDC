@@ -9,6 +9,7 @@
   <property name="dist"  location="dist"/>
   <property name="mainplugin" value="com.iver.cit.gvsig"/>
   <property name="plugin" value="es.udc.cartolab.accesTerrit"/>
+  <property name="algorithm" value="sextante_accesTerrit"/>
   <property name="gvsiglibjar" value="es.udc.cartolab.accesTerrit"/>
   <property name="andami" location="../_fwAndami" />
   <property name="extensionsDir" location="${andami}/gvSIG/extensiones"/>
@@ -37,6 +38,9 @@
 	  	</copy>
 
 	  	<jar jarfile="${dist}/lib/${plugin}.jar" basedir="${build}" includes="es/udc/cartolab/**"
+	    />
+
+	  	<jar jarfile="${dist}/lib/${algorithm}.jar" basedir="${build}" includes="es/udc/sextante/**"
 	    />
 
 	  	<copy todir="${dist}/images">
