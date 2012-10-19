@@ -430,7 +430,7 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
             for (int x = 0; x < m_iNX; x++) {
                 int value;
                 try {
-                    value = (Integer) zd.getDataSource().getData(x, y, 0);
+                    value = ((Number) zd.getDataSource().getData(x, y, 0)).intValue();
                     if (value != (int) zd.getDataSource().getNoDataValue()
                             && !surfacesID.contains(value)) {
                         surfacesID.add(value);
