@@ -40,7 +40,6 @@ import es.unex.sextante.exceptions.GeoAlgorithmExecutionException;
 import es.unex.sextante.exceptions.IteratorException;
 import es.unex.sextante.exceptions.NullParameterValueException;
 import es.unex.sextante.exceptions.RepeatedParameterNameException;
-import es.unex.sextante.exceptions.UnsupportedOutputChannelException;
 import es.unex.sextante.exceptions.WrongParameterIDException;
 import es.unex.sextante.exceptions.WrongParameterTypeException;
 import es.unex.sextante.outputs.FileOutputChannel;
@@ -58,7 +57,7 @@ public class AlbertoConditionalCostAlgorithm
 extends
 GeoAlgorithm {
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	public static final String            COST                           = "COST";
 	public static final String            ORIG_DEST                      = "ORIG_DEST";
@@ -69,13 +68,12 @@ GeoAlgorithm {
 	public static final String            DISTANCE                       = "DISTANCE";
 
 	//public static final String THRESHOLD = "THRESHOLD";
-    public static final String OUTPUT = "OUTPUT_FOLDER";
+	public static final String            OUTPUT                         = "OUTPUT_FOLDER";
 	public static final String            OUTPUT_ACCCOST                 = "ACCCOST";
 	public static final String            OUTPUT_CLOSESTPOINT            = "CLOSESTPOINT";
 	public static final String            OUTPUT_CONDITIONAL_COSTS       = "COND_COST";
 
 	private static final int              NO_DATA                        = -99999;
-	private static final int              ORG_DST_DATA                   = 0;
 
 	public static final int               EUCLIDEAN                      = 0;
 	public static final int               CHESSBOARD                     = 1;
@@ -197,7 +195,6 @@ GeoAlgorithm {
         m_Movement_Surfaces.open();
 
         final Object input_crs = m_Movement_Surfaces.getCRS();
-        //final GridExtent input_extent = new GridExtent(m_Movement_Surfaces);
 
         try {
             m_Movement_Surfaces.postProcess();
@@ -220,9 +217,6 @@ GeoAlgorithm {
         for (int y = 0; y < m_iNY; y++) {
             for (int x = 0; x < m_iNX; x++) {
                 final int value = m_Movement_Surfaces.getCellValueAsInt(x, y);
-                //              if (value == ORG_DST_DATA){
-                //                  continue;
-                //              }
                 if (!m_Movement_Surfaces.isNoDataValue(value)
                         && !surfacesID.contains(value)) {
                     surfacesID.add(value);
@@ -236,15 +230,10 @@ GeoAlgorithm {
 
         m_CentralPoints = new ArrayList();
 
-        //m_dThreshold = m_Parameters.getParameterValueAsDouble(THRESHOLD);
         String baseOutput = "acc_cost_output";
         String output = baseOutput;
         File file = new File(outputPath + File.separator + output + ".tif");
         int f = 1;
-        /*while (file.exists()) {
-        	output = baseOutput + "_" + new Integer(f++).toString();
-        	file = new File(outputPath + File.separator + output + ".tif");
-        }*/
         IOutputChannel channel = new FileOutputChannel(file.getAbsolutePath());
         output_GAccCost = m_OutputFactory.getNewRasterLayer(OUTPUT_ACCCOST,
                 IRasterLayer.RASTER_DATA_TYPE_DOUBLE, m_AnalysisExtent, 1,
@@ -262,11 +251,6 @@ GeoAlgorithm {
         baseOutput = "closest_point_output";
         output = baseOutput;
         file = new File(outputPath + File.separator + output + ".tif");
-        /*f = 1;
-        while (file.exists()) {
-        	output = baseOutput + "_" + new Integer(f++).toString();
-        	file = new File(outputPath + File.separator + output + ".tif");
-        }*/
         channel = new FileOutputChannel(file.getAbsolutePath());
         m_ClosestPoint = m_OutputFactory.getNewRasterLayer(OUTPUT_CLOSESTPOINT,
                 IRasterLayer.RASTER_DATA_TYPE_INT, m_AnalysisExtent, 1,
@@ -281,8 +265,6 @@ GeoAlgorithm {
         addOutputRasterLayer(OUTPUT_CLOSESTPOINT, OUTPUT_CLOSESTPOINT, 1,
                 channel, m_ClosestPoint);
 
-        //final GridExtent extent = output_GAccCost.getWindowGridExtent();
-
         m_Cost.setWindowExtent(m_AnalysisExtent);
         m_Cost.setInterpolationMethod(IRasterLayer.INTERPOLATION_BSpline);
 
@@ -293,9 +275,6 @@ GeoAlgorithm {
         m_iNX = m_Cost.getNX();
         m_iNY = m_Cost.getNY();
 
-        //TODO HOW TO SAVE IN A USER FOLDER!???!?!??!?!
-        // TEST /////////////////////
-        //final IRasterLayer[] result = new IRasterLayer[surfacesID.size()];
         //CREATING OUTPUT RASTERS
         int i = 0;
         for (String k : input_Cond_Costs.keySet()) {
@@ -305,11 +284,6 @@ GeoAlgorithm {
             baseOutput = k + "_output";
             output = baseOutput;
             file = new File(outputPath + File.separator + output + ".tif");
-            /*f = 1;
-            while (file.exists()) {
-            	output = baseOutput + "_" + new Integer(f++).toString();
-            	file = new File(outputPath + File.separator + output + ".tif");
-            }*/
             channel = new FileOutputChannel(file.getAbsolutePath());
             /////// REVISAR COMO SE USA AHORA LA EXTENT
             final IRasterLayer cac = m_OutputFactory.getNewRasterLayer(name,
@@ -328,22 +302,10 @@ GeoAlgorithm {
             output_CondAccCosts.put(k, cac);
         }
 
-        //      ///////////////////////////////////
-        //      final String name = OUTPUT_ACCCOST + Integer.toString(i);
-        //      final IOutputChannel channel = getMyOutputChannel(name);
-        //      addOutputRasterLayer(name, name, 1, channel, output_GAccCost);
-        //      output_GAccCost.open();
-        //      output_GAccCost.setNoDataValue(NO_DATA);
-        //      output_GAccCost.assignNoData();
-        //
-        //      output_GAccCost.close();
-
-
         //INITIALIZING...
         for (y = 0; y < m_iNY; y++) {
             for (x = 0; x < m_iNX; x++) {
                 dValue = m_Orig_Dest.getCellValueAsDouble(x, y);
-                //if ((dValue != 0.0) && !m_Orig_Dest.isNoDataValue(dValue)) {
                 if (!m_Orig_Dest.isNoDataValue(dValue)) {
                     // Store the GridCell and of its CostSurface (-1 means Global Cost Surface)
                     final Object[] ccs_cellValue = new Object[3];
@@ -354,39 +316,27 @@ GeoAlgorithm {
                     m_CentralPoints.add(ccs_cellValue);
                     output_GAccCost.setCellValue(x, y, 0.0);
                     m_ClosestPoint.setCellValue(x, y, iPoint);
-                    //               for (final String k : m_Cond_CentralPoints.keySet()) {
-                    //                  final ArrayList centralPoints = m_Cond_CentralPoints.get(k);
-                    //                  centralPoints.add(new GridCell(x, y, iPoint));
-                    //               }
                     for (final String k : output_CondAccCosts.keySet()) {
                         final IRasterLayer out_acccost = output_CondAccCosts
                                 .get(k);
                         //TODO Add on m_CentralPoints????
 
-                        //System.out.println(out_acccost.getCellValueAsDouble(x, y));
                         out_acccost.setCellValue(x, y, 0.0);
-                        //System.out.println(out_acccost.getCellValueAsDouble(x, y));
 
                     }
-                    //               for (final String k : m_Cond_ClosestPoint.keySet()) {
-                    //                  final IRasterLayer closestPoints = m_Cond_ClosestPoint.get(k);
-                    //                  closestPoints.setCellValue(x, y, iPoint);
-                    //               }
 
                     iPoint++;
                 }
             }
         }
-        System.out
-                .println("--------------------------------   m_CentralPoints.size(): "
-                        + m_CentralPoints.size());
 
         if (m_iDistance != WINDOW5X5) {
-            calculateCost3X3();
+        	if (DEBUG) {
+        		calculateCost3X3Debug();
+        	} else {
+        		calculateCost3X3();
+        	}
         }
-        //              else{
-        //                  calculateCost5X5();
-        //              }
 
         return m_OutputObjects;
 
@@ -454,12 +404,12 @@ GeoAlgorithm {
             final MovementSurface surface = surfacesMap.get(surfID);
             if (surface != null) {
                 surface.setMovConstraints(constraintsMap);
-            } else {
+            } /*else {
                 //TODO
                 System.out
                         .println("ERROR: Any surface with ID ---------------> "
                                 + surfID);
-            }
+            }*/
         }
     }
 
@@ -488,6 +438,8 @@ GeoAlgorithm {
 
 	@SuppressWarnings("unchecked")
 	private void calculateCost3X3() {
+
+		//System.out.println("--------------------------------   m_CentralPoints.size(): " + m_CentralPoints.size());
 
 		int i, j;
 		int iPoint;
@@ -544,15 +496,10 @@ GeoAlgorithm {
                 break;
             }
 
-			if (DEBUG) {
+			/*if (DEBUG) {
 				System.out.println("iter[[" + count++ + "]] --------------------------------   m_CentralPoints.size(): " + m_CentralPoints.size());
 			}
-			//TODO Get MINOR VALUE on !!!!
-			//for (iPt = 0; iPt < m_CentralPoints.size(); iPt++) {
-			//            System.out.println(count++ + "------ m_CentralPoints.size(): " + m_CentralPoints.size() + "/" + iPt);
-			//            System.out.println(count++ + "------ m_AdjPoints.size(): " + m_AdjPoints.size() + "/" + iPt);
-			//            System.out.println();
-			/*System.out.println();
+			System.out.println();
 			System.out.println();
 			System.out.println("------------ m_CentralPoints.size(): " + m_CentralPoints.size());
 
@@ -571,23 +518,22 @@ GeoAlgorithm {
 			System.out.println();
 			System.out.println();*/
 
-			//final Object[] ccsID_GridCell_value = (Object[]) m_CentralPoints.get(iPt);
 			final Object[] ccsID_cellValue = (Object[]) m_CentralPoints.get(0);
 			m_CentralPoints.remove(0);
 			String orgSurfID_Name = (String) ccsID_cellValue[0];
 			cell = (GridCell) ccsID_cellValue[1];
-			final Double value = (Double) ccsID_cellValue[2];
 			x1 = cell.getX();
 			y1 = cell.getY();
 			
-			if (DEBUG) {
+			/*if (DEBUG) {
+				final Double value = (Double) ccsID_cellValue[2];
 				System.out.println("\n********************");
 				System.out.println("New Origen----> x,y: ("
 						+ x1 + ", " + y1 + ") "
 						+ orgSurfID_Name + " -- "
 						+ value);
 				System.out.println("********************");
-			}
+			}*/
 			
 			iPoint = (int) cell.getValue();
 			orgCostValue = m_Cost.getCellValueAsDouble(x1, y1);
@@ -604,9 +550,9 @@ GeoAlgorithm {
 						continue;
 					}
 
-					if (DEBUG){
+					/*if (DEBUG){
 						System.out.println("** New Dst cell: [" +x2 +", " + y2 +"] **");
-					}
+					}*/
 					
 					dist = dDist[i + 1][j + 1];
 					dstCostValue = m_Cost.getCellValueAsDouble(x2, y2);
@@ -619,23 +565,7 @@ GeoAlgorithm {
 					final MovementSurface orgSurface = surfacesMap.get(orgSurfaceID);
 					final MovementSurface dstSurface = surfacesMap.get(dstSurfaceID);
 
-					//Check if there are cost cell with values on the conditinal grids
-					final boolean orgHasValueInGAccCost = !output_GAccCost.isNoDataValue(output_GAccCost.getCellValueAsDouble(x1, y1));
-					final boolean dstHasValueInGAccCost = !output_GAccCost.isNoDataValue(output_GAccCost.getCellValueAsDouble(x2, y2));
 					IRasterLayer surface = null;
-
-					//					////////////////// Para parar en un punto conflictivo
-//										if ((x1 == 2) && (y1 == 3) && (x2 == 1) && (y2 == 4)) {
-					boolean stop = false;
-					/*if ((x2 == 1) && (y2 == 4)) {
-						stop = true;
-											//if ((orgSurfaceID == 5) && (dstSurfaceID == 3)) {
-						System.out.println("CSS: [" + orgSurface.getCCSName() + "] ZC_ORG: " + orgSurfaceID + "  X1, y1: " + x1 + "," + y1);
-						System.out.println("CSS: [" + dstSurface.getCCSName() + "] ZC_DST: " + dstSurfaceID + "  X2, y2: " + x2 + "," + y2);
-						System.out.println("PROBLEMS CONTINUE HERE!!!!!!!!! ");
-						System.out.println("nullCostOrg: " + !m_Cost.isNoDataValue(orgCostValue) +" NullCostDst : " +  !m_Cost.isNoDataValue(dstCostValue) +" costOrg>0: " +(orgCostValue > 0) +
-								"(dstCostValue > 0): " + (dstCostValue > 0)+" canMove: "+canMove(orgSurface, dstSurface, orgSurfaceID, dstSurfaceID));
-					}*/
 
 					//ALGORITHM CALCULUS
 					if (!m_Cost.isNoDataValue(orgCostValue) && !m_Cost.isNoDataValue(dstCostValue) && (orgCostValue > 0)
@@ -649,7 +579,6 @@ GeoAlgorithm {
 							for (String k: input_Cond_Costs.keySet()) {
 	
 								boolean dstHasSomeCondCostValue = false;
-								boolean orgHasSomeCondCostValue = false;
 
 								//TODO IMPORTANTE 
 								// Esto hace que se entre varias veces en el CASd
@@ -661,27 +590,17 @@ GeoAlgorithm {
 								surface.setWindowExtent(m_AnalysisExtent);
 								surface.setInterpolationMethod(IRasterLayer.INTERPOLATION_BSpline);
 
-								if (surface.getCellValueAsDouble(x1, y1)>-1) {
-									orgHasSomeCondCostValue = true;
-								}
-
 								if (surface.getCellValueAsDouble(x2, y2)>-1) {
 									dstHasSomeCondCostValue = true;
 								}
-								if (DEBUG) {
+								/*if (DEBUG) {
 									System.out
 											.println("SCCk: "
 													+ k);
-								}
+								}*/
 								if (dstHasSomeCondCostValue) {
 									//TODO 
 									if (orgSurface.isNode() && orgSurface.getCCSName()==k){
-										// orgZD is node of this ECD
-										////////////////////////////////////
-										if (DEBUG && stop) {
-											System.out.println("CAC ===============> CACiD = CASo + d * ( CSo + CCiD)");
-										}
-										////////////////////////////////////
 										String new_ccsID = surface.getName();
 										IRasterLayer outputRaster = output_CondAccCosts.get(new_ccsID);
 										double cost1 = orgCostValue;
@@ -690,13 +609,11 @@ GeoAlgorithm {
 										dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
 										setOutputValue(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, new_ccsID, iPoint);								
 									}
-								} 								
-								// Preguntar a Alberto ZDo compatible ZDd es lo mismo que se puede mover???
+								}
 								if (canMove && !CAS_done){
-									if (DEBUG) {
+									/*if (DEBUG) {
 										System.out.println("---------------> CASd = CASo + d * ( CSo + CSd)");
-									}
-									////////////////////////////////////
+									}*/
 									String new_ccsID = "GLOBAL"; //surface.getCCSName();
 									IRasterLayer outputRaster = output_GAccCost;
 									double cost1 = orgCostValue;
@@ -710,9 +627,9 @@ GeoAlgorithm {
 
 						} else {
 							//NO ES GLOBAL
-							if (DEBUG) {
+							/*if (DEBUG) {
 								System.out.println("NO ES GLOBAL: [" + orgSurfID_Name + "]");
-							}
+							}*/
 							IRasterLayer auxSurf = null;
 							
 							String surfName = "";
@@ -727,17 +644,14 @@ GeoAlgorithm {
 							if (auxSurf == null) {
 								continue;
 							}
-							
-							if (DEBUG && stop) {
-								System.out.println("CC.name: " + auxSurf.getName());
-							}
+
 							final boolean dstHasSCC = (auxSurf.getCellValueAsDouble(x2, y2)>-1);
 							
 							final IRasterLayer cac_output = output_CondAccCosts.get(surfName);
 							if (dstHasSCC) {
-								if (DEBUG) {
+								/*if (DEBUG) {
 									System.out.println("===============> CACid = CACio + d * ( CCio + CCid)");
-								}
+								}*/
 								String new_ccsID = surfName;
 								final IRasterLayer outputRaster = cac_output;
 								final double cost1 = auxSurf.getCellValueAsDouble(x1, y1);
@@ -749,9 +663,9 @@ GeoAlgorithm {
 							}
 
 							if (dstSurface.isNode() && dstSurface.getCCSName()==surfName){
-								if (DEBUG) {
+								/*if (DEBUG) {
 									System.out.println("NO_GLOBAL---------------> CASd = CACio + d * ( CCio + CSd)");
-								}
+								}*/
 								String new_ccsID = "GLOBAL";
 								final IRasterLayer outputRaster = output_GAccCost;								
 								final double cost1 = auxSurf.getCellValueAsDouble(x1, y1);
@@ -768,19 +682,237 @@ GeoAlgorithm {
 
 		} // For para recorrer celdas
 		m_AdjPointsMap.clear();
-		//         m_CentralPoints = m_AdjPoints;
-		//         m_AdjPoints = new ArrayList();
-		//}
 
-		//      //TODO CLOSE LAYERS
-		//      for (int k = 0; k < surfacesMap.size(); k++) {
-		//         final MovementSurface surface = surfacesMap.get(k);
-		//         //System.out.println("Surface[" + k + "]: " + surface);
-		//         if (surface == null) {
-		//            continue;
-		//         }
-		//         surface.openAll();
-		//      }
+	}
+
+
+	private void calculateCost3X3Debug() {
+
+		System.out.println("--------------------------------   m_CentralPoints.size(): " + m_CentralPoints.size());
+
+		int i, j;
+		int iPoint;
+		int x1, y1, x2, y2;
+		double orgAccCost;
+		double orgCostValue, dstCostValue;
+		int orgSurfaceID, dstSurfaceID;
+		double dPrevAccCost;
+		GridCell cell;
+
+		double dDist[][] = new double[3][3];
+		double dist = 0;
+
+		switch (m_iDistance) {
+		//NOTE: Todo entre 2 para la semisuma
+		case EUCLIDEAN:
+		default:
+			for (i = -1; i < 2; i++) {
+				for (j = -1; j < 2; j++) {
+					dDist[i + 1][j + 1] = Math.sqrt(i * i + j * j) * 0.5;
+				}
+			}
+			break;
+		case CHESSBOARD:
+			final double chessboard[][] = { { 0.5, 0.5, 0.5 }, { 0.5, 0, 0.5 }, { 0.5, 0.5, 0.5 } };
+			dDist = chessboard;
+			break;
+		case MANHATTAN:
+			final double manhattan[][] = { { 1, 0.5, 1 }, { 0.5, 0, 0.5 }, { 1, 0.5, 1 } };
+			dDist = manhattan;
+			break;
+		case CHAMFER:
+			final double v_2_3 = (double) 3 / 2;
+			final double chamfer[][] = { { 2, v_2_3, 2 }, { v_2_3, 0, v_2_3 }, { 2, v_2_3, 2 } };
+			dDist = chamfer;
+			break;
+		}
+
+		//INIT LAYERS
+		for (int k = 0; k < surfacesMap.size(); k++) {
+			final MovementSurface surface = surfacesMap.get(k);
+			System.out.println("Surface[" + k + "]: " + surface);
+			if (surface == null) {
+				continue;
+			}
+			surface.openAll();
+		}
+
+		int count = 0;
+		m_AdjPointsMap = new HashMap();
+        while (m_CentralPoints.size() != 0) {
+
+            if ((m_Task != null) && (m_Task.isCanceled())) {
+                break;
+            }
+
+			System.out.println("iter[[" + count++ + "]] --------------------------------   m_CentralPoints.size(): " + m_CentralPoints.size());
+			System.out.println();
+			System.out.println();
+			System.out.println("------------ m_CentralPoints.size(): " + m_CentralPoints.size());
+
+			//NachoV: Ahora acabo de poner esta ordenacion antes del iter... ¿¿¿Es correcto???
+			Collections.sort(m_CentralPoints, new XYGridcellValue_Comparator());
+			/*final Iterator iter = m_CentralPoints.iterator();
+			while (iter.hasNext()) {
+				final Object[] ccsID_cellValue = (Object[]) iter.next();
+				final String ccsID = (String) ccsID_cellValue[0];
+				cell = (GridCell) ccsID_cellValue[1];
+				final Double value = (Double) ccsID_cellValue[2];
+				x1 = cell.getX();
+				y1 = cell.getY();
+				System.out.println("x,y: (" + x1 + ", " + y1 + ") ccsID: [" + ccsID + "] Value: " + value);
+			}
+			System.out.println();
+			System.out.println();*/
+
+			final Object[] ccsID_cellValue = (Object[]) m_CentralPoints.get(0);
+			m_CentralPoints.remove(0);
+			String orgSurfID_Name = (String) ccsID_cellValue[0];
+			cell = (GridCell) ccsID_cellValue[1];
+			x1 = cell.getX();
+			y1 = cell.getY();
+			
+			final Double value = (Double) ccsID_cellValue[2];
+			System.out.println("\n********************");
+			System.out.println("New Origen----> x,y: ("
+					+ x1 + ", " + y1 + ") "
+					+ orgSurfID_Name + " -- "
+					+ value);
+			System.out.println("********************");
+			
+			iPoint = (int) cell.getValue();
+			orgCostValue = m_Cost.getCellValueAsDouble(x1, y1);
+			orgSurfaceID = -1;
+			orgSurfaceID = m_Movement_Surfaces.getCellValueAsInt(x1, y1);
+			
+			//Aviso de que ya se ha ido por esta rama y no es necesario comprobarlo otra vez
+			
+			for (i = -1; i < 2; i++) {
+				for (j = -1; j < 2; j++) {
+					x2 = x1 + i;
+					y2 = y1 + j;
+					if ((x1 == x2) && (y1 == y2)) {
+						continue;
+					}
+
+					System.out.println("** New Dst cell: [" +x2 +", " + y2 +"] **");
+					
+					dist = dDist[i + 1][j + 1];
+					dstCostValue = m_Cost.getCellValueAsDouble(x2, y2);
+					dstSurfaceID = -1;
+					dstSurfaceID = m_Movement_Surfaces.getCellValueAsInt(x2, y2);
+
+					boolean CAS_done = false;
+					
+					//TODO --------------------------------------------- Ahora se debe mirar los costes condicionales, no???
+					final MovementSurface orgSurface = surfacesMap.get(orgSurfaceID);
+					final MovementSurface dstSurface = surfacesMap.get(dstSurfaceID);
+
+					IRasterLayer surface = null;
+
+					//ALGORITHM CALCULUS
+					if (!m_Cost.isNoDataValue(orgCostValue) && !m_Cost.isNoDataValue(dstCostValue) && (orgCostValue > 0)
+							&& (dstCostValue > 0)) {
+						
+						boolean canMove = false;
+						canMove = canMoveTo(orgSurface, dstSurface.getID());
+						
+						if (orgSurfID_Name.equalsIgnoreCase("GLOBAL")) {
+							//It means that the gridCell on m_CentralPoint belongs to Global Cost Surface
+							for (String k: input_Cond_Costs.keySet()) {
+	
+								boolean dstHasSomeCondCostValue = false;
+
+								//TODO IMPORTANTE 
+								// Esto hace que se entre varias veces en el CASd
+								surface = input_Cond_Costs.get(k);					
+								if ((surface == null)) {
+									continue;
+								}
+
+								surface.setWindowExtent(m_AnalysisExtent);
+								surface.setInterpolationMethod(IRasterLayer.INTERPOLATION_BSpline);
+
+								if (surface.getCellValueAsDouble(x2, y2)>-1) {
+									dstHasSomeCondCostValue = true;
+								}
+								System.out.println("SCCk: " + k);
+								if (dstHasSomeCondCostValue) {
+									//TODO 
+									if (orgSurface.isNode() && orgSurface.getCCSName()==k){
+										String new_ccsID = surface.getName();
+										IRasterLayer outputRaster = output_CondAccCosts.get(new_ccsID);
+										double cost1 = orgCostValue;
+										double cost2 = surface.getCellValueAsDouble(x2, y2);
+										orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
+										dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
+										setOutputValueDebug(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, new_ccsID, iPoint);								
+									}
+								}
+								if (canMove && !CAS_done){
+									System.out.println("---------------> CASd = CASo + d * ( CSo + CSd)");
+									String new_ccsID = "GLOBAL"; //surface.getCCSName();
+									IRasterLayer outputRaster = output_GAccCost;
+									double cost1 = orgCostValue;
+									double cost2 = dstCostValue;
+									orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
+									dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
+									setOutputValueDebug(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, new_ccsID, iPoint);
+									CAS_done = true;
+								}
+							} // FOR of "D tiene valor en algún SCCi (1-n)"
+
+						} else {
+							//NO ES GLOBAL
+							System.out.println("NO ES GLOBAL: [" + orgSurfID_Name + "]");
+							IRasterLayer auxSurf = null;
+							
+							String surfName = "";
+							for (String surf_name: input_Cond_Costs.keySet()) {
+								//TODO NachoV rename ccsID a otro nombre mejor?
+								if (surf_name == orgSurfID_Name) {
+									auxSurf = input_Cond_Costs.get(surf_name);
+									surfName = surf_name;
+									break;
+								}
+							}
+							if (auxSurf == null) {
+								continue;
+							}
+
+							final boolean dstHasSCC = (auxSurf.getCellValueAsDouble(x2, y2)>-1);
+							
+							final IRasterLayer cac_output = output_CondAccCosts.get(surfName);
+							if (dstHasSCC) {
+								System.out.println("===============> CACid = CACio + d * ( CCio + CCid)");
+								String new_ccsID = surfName;
+								final IRasterLayer outputRaster = cac_output;
+								final double cost1 = auxSurf.getCellValueAsDouble(x1, y1);
+								final double cost2 = auxSurf.getCellValueAsDouble(x2, y2);
+								//orgAccCost = value;//outputRaster.getCellValueAsDouble(x1, y1);
+								orgAccCost = outputRaster.getCellValueAsDouble(x1, y1);
+								dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
+								setOutputValueDebug(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, new_ccsID, iPoint);
+							}
+
+							if (dstSurface.isNode() && dstSurface.getCCSName()==surfName){
+								System.out.println("NO_GLOBAL---------------> CASd = CACio + d * ( CCio + CSd)");
+								String new_ccsID = "GLOBAL";
+								final IRasterLayer outputRaster = output_GAccCost;								
+								final double cost1 = auxSurf.getCellValueAsDouble(x1, y1);
+								final double cost2 = dstCostValue;
+								orgAccCost = cac_output.getCellValueAsDouble(x1, y1);
+								dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
+								setOutputValueDebug(outputRaster, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, new_ccsID, iPoint);
+							}
+						}
+					}
+				}
+			}
+			// setProgressText(Integer.toString(m_CentralPoints.size()));
+
+		} // For para recorrer celdas
+		m_AdjPointsMap.clear();
 
 	}
 
@@ -798,9 +930,8 @@ GeoAlgorithm {
 
 		//orgAccCost += ((cost1 + cost2) * dist);
 		final double dstAccCost = orgAccCost + ((cost1 + cost2) * dist);
-		
-		//if (x == 1 && y == 5){
-		if (DEBUG) {
+
+		/*if (DEBUG) {
 			if (orgAccCost == -1) {
 				System.out.print("");
 			}
@@ -814,39 +945,96 @@ GeoAlgorithm {
 							+ x + ", " + y
 							+ "] to set?: "
 							+ dstAccCost);
-		}
+		}*/
 		//TODO Esto puede pasar????
 		if (dstAccCost < 0) {
-			if (DEBUG) {
+			/*if (DEBUG) {
 				System.out.println(" Esto puede pasar???? --------------------- dstAccCost < 0.0");
-			}
+			}*/
 			return;
 		}
 
 		if (outputLayer.isNoDataValue(prevDstAccCost) || (prevDstAccCost > dstAccCost)) {
-			if (DEBUG) {
-				System.out
-						.println("SET!!!!!!!!!! "
-								+ outputLayer
-										.getOutputChannel());
-				System.out
-						.println("before: "
-								+ outputLayer
-										.getCellValueAsDouble(
-												x,
-												y));
-			}
+			/*if (DEBUG) {
+				System.out.println("SET!!!!!!!!!! " + outputLayer.getOutputChannel());
+				System.out.println("before: " + outputLayer.getCellValueAsDouble(x, y));
+			}*/
 			outputLayer.setCellValue(x, y, dstAccCost);
-			if (DEBUG) {
-				System.out
-						.println("after: "
-								+ outputLayer
-										.getCellValueAsDouble(
-												x,
-												y));
-			}
-			if ((outputLayer.getCellValueAsDouble(x, y) != dstAccCost)
+			/*if (DEBUG) {
+				System.out.println("after: " + outputLayer.getCellValueAsDouble(x, y));
+			}*/
+			/*if ((outputLayer.getCellValueAsDouble(x, y) != dstAccCost)
 					&& DEBUG) {
+				System.out.println("Why!!!!!!!!!!!!??????? " + dstAccCost +" != "+ outputLayer.getCellValueAsDouble(x, y));
+			}*/
+			m_ClosestPoint.setCellValue(x, y, iPoint);
+			final Object[] cssID_cellValue = new Object[3];
+			cssID_cellValue[0] = ccsID;
+			cssID_cellValue[1] = new GridCell(x, y, iPoint);
+			cssID_cellValue[2] = dstAccCost;
+
+			final String x_y_id = String.valueOf(x) + "_" + String.valueOf(y) + "_" + String.valueOf(ccsID);
+			//System.out.println("Size: " + m_AdjPointsMap.size());
+			if (!m_AdjPointsMap.containsKey(x_y_id)) {
+				/*if (DEBUG) {
+					System.out.println("Added to the central_points!! --> " + x_y_id + "\n");
+				}*/
+				m_CentralPoints.add(cssID_cellValue);
+				m_AdjPointsMap.put(x_y_id, x_y_id);
+			} else {
+				/*if (DEBUG) {
+					System.out.println("Remove/Added to the central_points!! --> " + x_y_id + "\n");
+				}*/
+				m_AdjPointsMap.remove(x_y_id);
+				m_CentralPoints.add(cssID_cellValue);
+				m_AdjPointsMap.put(x_y_id, x_y_id);
+			}
+		}/* else {
+			if (DEBUG) {
+				System.out.println("Not set!! \n");
+			}
+		}*/
+	}
+
+
+	private void setOutputValueDebug(final IRasterLayer outputLayer,
+			final double orgAccCost,
+			final double prevDstAccCost,
+			final double cost1,
+			final double cost2,
+			final double dist,
+			final int x,
+			final int y,
+			final String ccsID,
+			final int iPoint) {
+
+		//orgAccCost += ((cost1 + cost2) * dist);
+		final double dstAccCost = orgAccCost + ((cost1 + cost2) * dist);
+
+		if (orgAccCost == -1) {
+			System.out.print("");
+		}
+
+		System.out.println("cost1: " + cost1 + " cost2: "
+				+ cost2);
+		System.out.println("prevDstAccCost: " + prevDstAccCost
+				+ "  orgAccCost: " + orgAccCost);
+		System.out.println(outputLayer.getName() + "["
+						+ x + ", " + y
+						+ "] to set?: "
+						+ dstAccCost);
+		//TODO Esto puede pasar????
+		if (dstAccCost < 0) {
+			System.out.println(" Esto puede pasar???? --------------------- dstAccCost < 0.0");
+			return;
+		}
+
+		if (outputLayer.isNoDataValue(prevDstAccCost) || (prevDstAccCost > dstAccCost)) {
+			System.out.println("SET!!!!!!!!!! " + outputLayer.getOutputChannel());
+			System.out.println("before: " + outputLayer.getCellValueAsDouble(x, y));
+			outputLayer.setCellValue(x, y, dstAccCost);
+			System.out.println("after: " + outputLayer.getCellValueAsDouble(x, y));
+			if (outputLayer.getCellValueAsDouble(x, y) != dstAccCost) {
 				System.out.println("Why!!!!!!!!!!!!??????? " + dstAccCost +" != "+ outputLayer.getCellValueAsDouble(x, y));
 			}
 			m_ClosestPoint.setCellValue(x, y, iPoint);
@@ -858,36 +1046,18 @@ GeoAlgorithm {
 			final String x_y_id = String.valueOf(x) + "_" + String.valueOf(y) + "_" + String.valueOf(ccsID);
 			System.out.println("Size: " + m_AdjPointsMap.size());
 			if (!m_AdjPointsMap.containsKey(x_y_id)) {
-				if (DEBUG) {
-					System.out.println("Added to the central_points!! --> " + x_y_id + "\n");
-				}
+				System.out.println("Added to the central_points!! --> " + x_y_id + "\n");
 				m_CentralPoints.add(cssID_cellValue);
 				m_AdjPointsMap.put(x_y_id, x_y_id);
 			} else {
-				if (DEBUG) {
-					System.out.println("Remove/Added to the central_points!! --> " + x_y_id + "\n");
-				}
+				System.out.println("Remove/Added to the central_points!! --> " + x_y_id + "\n");
 				m_AdjPointsMap.remove(x_y_id);
 				m_CentralPoints.add(cssID_cellValue);
 				m_AdjPointsMap.put(x_y_id, x_y_id);
 			}
 		} else {
-			if (DEBUG) {
-				System.out.println("Not set!! \n");
-			}
+			System.out.println("Not set!! \n");
 		}
-	}
-
-
-	//Based on SeparateShapesAlgorithm
-	private IOutputChannel getMyOutputChannel(final String surfaceID) throws UnsupportedOutputChannelException {
-
-		IOutputChannel channel;
-		//TODO CHange FOLDER!!!!!!!!!
-		final String sFilename = "/tmp/output_condacccost_" + surfaceID + ".tif";
-		channel = new FileOutputChannel(sFilename);
-		return channel;
-
 	}
 
 
@@ -898,40 +1068,6 @@ GeoAlgorithm {
 			return false;
 		}
 		return surf1.canMoveTo(valueSurf2);
-	}
-
-
-	private boolean canMove(final MovementSurface surf1,
-			final MovementSurface surf2,
-			final int valueSurf1,
-			final int valueSurf2) {
-		boolean canMove = false;
-		if (m_Movement_Surfaces.isNoDataValue(valueSurf1) || m_Movement_Surfaces.isNoDataValue(valueSurf2)) {
-			canMove = false;
-		}
-		else {
-			if ((surf1 != null) && !surf1.canMoveTo(valueSurf2) && (surf2 != null)) {
-				canMove = false;
-			}
-			else if ((surf1 != null) && surf1.canMoveTo(valueSurf2)) {
-				// GREAT!! Go ahead!!
-				canMove = true;
-			}
-			else {
-				// If there is any of the other... then go ahead... :)
-				canMove = true;
-			}
-		}
-
-		if (valueSurf1 == valueSurf2) {
-			//TODO
-			// GREAT!! Go ahead!!
-		}
-		else {
-			//TODO
-			// GREAT!! Go ahead!!
-		}
-		return canMove;
 	}
 
 
