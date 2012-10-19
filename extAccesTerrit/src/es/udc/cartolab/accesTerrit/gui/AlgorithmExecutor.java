@@ -7,6 +7,8 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.DateFormat;
+import java.util.Date;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -35,6 +37,7 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
 
     private JProgressBar progressBar;
     private JLabel taskOutput;
+    private JLabel timeOutput;
     private Task task;
     private AccesTerritParameters parameters;
     private WindowInfo viewInfo = null;
@@ -42,11 +45,13 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
     private JButton okButton = null;
     private BaseView view;
     private OutputObjectsSet output;
+    private Date initTime;
 
     private AlgorithmExecutor(AccesTerritParameters parameters, BaseView view) {
         super();
         this.view = view;
         this.parameters = parameters;
+        this.initTime = new Date();
         try {
             initialize();
         } catch (Exception e) {
@@ -89,6 +94,10 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
          */
         @Override
         public void done() {
+            String durationMessage = timeOutput.getText();
+            System.out.println("Milisegundos de procesamiento: " + (new Date().getTime() - initTime.getTime()));
+            durationMessage = durationMessage.replace("---",  DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(new Date()));
+
             progressBar.setIndeterminate(false);
             progressBar.setValue(100);
             Toolkit.getDefaultToolkit().beep();
@@ -97,6 +106,7 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
             taskOutput.setFont(newLabelFont);
             taskOutput.setText(PluginServices.getText(this,
                     "_acces_territ-executed"));
+            timeOutput.setText(durationMessage);
             okButton.setEnabled(true);
         }
     }
@@ -126,8 +136,7 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
         c.gridy++;
         c.gridwidth = 5;
 
-        taskOutput = new JLabel(PluginServices.getText(this,
-                "_acces_territ-executing"));
+        taskOutput = new JLabel(PluginServices.getText(this, "_acces_territ-executing"));
         taskOutput.setHorizontalAlignment(SwingConstants.CENTER);
         Font newLabelFont = new Font(taskOutput.getFont().getName(),
                 Font.PLAIN, taskOutput.getFont().getSize() + 2);
@@ -136,10 +145,22 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
 
         super.add(taskOutput);
 
-        JLabel badLabel = new JLabel(" ");
-        super.add(badLabel);
+        // FILA 3
+        c.gridy++;
+        c.gridwidth = 5;
 
-        c.gridy += 2;
+        timeOutput = new JLabel("<html>" + PluginServices.getText(this, "_acces_territ-init_time") +
+                ": " + DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(initTime) +
+                "<br>" + PluginServices.getText(this, "_acces_territ-end_time") + ": ---</html></html>");
+        timeOutput.setHorizontalAlignment(SwingConstants.CENTER);
+        newLabelFont = new Font(timeOutput.getFont().getName(),
+                Font.PLAIN, timeOutput.getFont().getSize());
+        timeOutput.setFont(newLabelFont);
+        layout.setConstraints(timeOutput, c);
+
+        super.add(timeOutput);
+
+        c.gridy++;
         c.gridwidth = 2;
         c.ipady = 8;
         c.insets = new Insets(12, 0, 0, 0);
@@ -189,7 +210,7 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
         AlgorithmExecutor commandDialog = new AlgorithmExecutor(parameters,
                 view);
         commandDialog.start();
-        PluginServices.getMDIManager().addWindow(commandDialog);
+        window = PluginServices.getMDIManager().addWindow(commandDialog);
 
     }
 
@@ -200,8 +221,8 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
                     | WindowInfo.PALETTE | WindowInfo.NOTCLOSABLE);
             viewInfo.setTitle(PluginServices.getText(this,
                     "_acces_territ-executing-title"));
-            viewInfo.setWidth(300);
-            viewInfo.setHeight(100);
+            viewInfo.setWidth(350);
+            viewInfo.setHeight(170);
         }
         return viewInfo;
     }
