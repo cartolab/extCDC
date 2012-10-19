@@ -19,7 +19,11 @@ public class AreaClass {
                 if (tokens[1].compareTo("clase") == 0) {
                     clase = Integer.parseInt(tokens[2]);
                 } else if (tokens[1].compareTo("nombre") == 0) {
-                    nombre = tokens[2];
+                    if (tokens.length > 2) {
+                        nombre = tokens[2];
+                    } else {
+                        nombre = "";
+                    }
                 } else if (tokens[1].compareTo("edc") == 0) {
                     if (tokens.length > 2) {
                         for (FLyrRasterSE raster : rasters) {
