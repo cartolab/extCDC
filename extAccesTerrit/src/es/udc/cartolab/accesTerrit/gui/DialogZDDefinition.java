@@ -53,7 +53,7 @@ public class DialogZDDefinition extends JPanel implements IWindow,
         // TODO Auto-generated method stub
         if (viewInfo == null) {
             viewInfo = new WindowInfo(WindowInfo.MODALDIALOG
-                    | WindowInfo.RESIZABLE | WindowInfo.PALETTE);
+                    | WindowInfo.PALETTE);
             viewInfo.setTitle(PluginServices.getText(this, "ZD_Definition"));
             viewInfo.setWidth(labelsClasses[0].getPreferredSize().width
                     + textFieldsNames[0].getPreferredSize().width
@@ -149,14 +149,15 @@ public class DialogZDDefinition extends JPanel implements IWindow,
             panelButtons = new JPanel();
             panelButtons.setLayout(layout);
             c.anchor = GridBagConstraints.SOUTHWEST;
-            c.insets = new Insets(12, 6, 0, getWindowInfo().getWidth()
-                    - (getCancelButton().getPreferredSize().width
-                            + getPrevButton().getPreferredSize().width
-                            + getOkButton().getPreferredSize().width + 40));
+            c.insets = new Insets(12, 6, 0, 0);
             layout.setConstraints(getCancelButton(), c);
             c.anchor = GridBagConstraints.SOUTHEAST;
-            c.insets = new Insets(12, 0, 0, 6);
+            c.insets = new Insets(12, getWindowInfo().getWidth()
+                    - (getCancelButton().getPreferredSize().width
+                            + getPrevButton().getPreferredSize().width
+                            + getOkButton().getPreferredSize().width + 50), 0, 6);
             layout.setConstraints(getPrevButton(), c);
+            c.insets = new Insets(12, 6, 0, 0);
             layout.setConstraints(getOkButton(), c);
             panelButtons.add(getCancelButton());
             panelButtons.add(getPrevButton());
@@ -220,7 +221,7 @@ public class DialogZDDefinition extends JPanel implements IWindow,
         }
 
         JPanel buttonPanel = getJPanelButtons();
-        buttonPanel.setPreferredSize(new Dimension(getWindowInfo().getWidth(),
+        buttonPanel.setPreferredSize(new Dimension(getWindowInfo().getWidth() - 25,
                 50));
 
         // okButton.setEnabled(false);
