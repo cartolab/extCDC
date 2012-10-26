@@ -70,6 +70,7 @@ GeoAlgorithm {
 	//public static final String THRESHOLD = "THRESHOLD";
 	public static final String            OUTPUT                         = "OUTPUT_FOLDER";
 	public static final String            OUTPUT_ACCCOST                 = "ACCCOST";
+	public static final String            OUTPUT_ACCGLOBALCOST           = "ACCGLOBALCOST";
 	public static final String            OUTPUT_CLOSESTPOINT            = "CLOSESTPOINT";
 	public static final String            OUTPUT_CONDITIONAL_COSTS       = "COND_COST";
 
@@ -91,6 +92,7 @@ GeoAlgorithm {
 	private HashMap<String, IRasterLayer> input_Cond_Costs;
 
 	private IRasterLayer                  output_GAccCost;
+	private IRasterLayer                  output_GAccGlobalCost;
 	private HashMap<String, IRasterLayer> output_CondAccCosts;
 
 	private IRasterLayer                  m_ClosestPoint;
@@ -230,10 +232,8 @@ GeoAlgorithm {
 
         m_CentralPoints = new ArrayList();
 
-        String baseOutput = "acc_cost_output";
-        String output = baseOutput;
+        String output = "acc_cost_output";
         File file = new File(outputPath + File.separator + output + ".tif");
-        int f = 1;
         IOutputChannel channel = new FileOutputChannel(file.getAbsolutePath());
         output_GAccCost = m_OutputFactory.getNewRasterLayer(OUTPUT_ACCCOST,
                 IRasterLayer.RASTER_DATA_TYPE_DOUBLE, m_AnalysisExtent, 1,
@@ -248,8 +248,23 @@ GeoAlgorithm {
         addOutputRasterLayer(OUTPUT_ACCCOST, OUTPUT_ACCCOST, 1, channel,
                 output_GAccCost);
 
-        baseOutput = "closest_point_output";
-        output = baseOutput;
+        output = "acc_cost_global_output";
+        file = new File(outputPath + File.separator + output + ".tif");
+        channel = new FileOutputChannel(file.getAbsolutePath());
+        output_GAccGlobalCost = m_OutputFactory.getNewRasterLayer(OUTPUT_ACCGLOBALCOST,
+                IRasterLayer.RASTER_DATA_TYPE_DOUBLE, m_AnalysisExtent, 1,
+                channel, input_crs);
+
+        output_GAccGlobalCost.setFullExtent();
+
+        output_GAccGlobalCost.setNoDataValue(NO_DATA);
+        output_GAccGlobalCost.assignNoData();
+
+        //TODO Esto debe hacerse al final de todo al tener la capa ya creadita
+        addOutputRasterLayer(OUTPUT_ACCGLOBALCOST, OUTPUT_ACCGLOBALCOST, 1, channel,
+        		output_GAccGlobalCost);
+
+        output = "closest_point_output";
         file = new File(outputPath + File.separator + output + ".tif");
         channel = new FileOutputChannel(file.getAbsolutePath());
         m_ClosestPoint = m_OutputFactory.getNewRasterLayer(OUTPUT_CLOSESTPOINT,
@@ -281,8 +296,7 @@ GeoAlgorithm {
             i++;
             final String name = "CONDCOST_" + k.toUpperCase();
 
-            baseOutput = k + "_output";
-            output = baseOutput;
+            output = k + "_output";
             file = new File(outputPath + File.separator + output + ".tif");
             channel = new FileOutputChannel(file.getAbsolutePath());
             /////// REVISAR COMO SE USA AHORA LA EXTENT
@@ -315,6 +329,7 @@ GeoAlgorithm {
                     ccs_cellValue[2] = 0.0;
                     m_CentralPoints.add(ccs_cellValue);
                     output_GAccCost.setCellValue(x, y, 0.0);
+                    output_GAccGlobalCost.setCellValue(x, y, 0.0);
                     m_ClosestPoint.setCellValue(x, y, iPoint);
                     for (final String k : output_CondAccCosts.keySet()) {
                         final IRasterLayer out_acccost = output_CondAccCosts
@@ -960,6 +975,10 @@ GeoAlgorithm {
 				System.out.println("before: " + outputLayer.getCellValueAsDouble(x, y));
 			}*/
 			outputLayer.setCellValue(x, y, dstAccCost);
+			if (output_GAccGlobalCost.isNoDataValue(output_GAccGlobalCost.getCellValueAsDouble(x, y))
+					|| output_GAccGlobalCost.getCellValueAsDouble(x, y) > dstAccCost) {
+				output_GAccGlobalCost.setCellValue(x, y, dstAccCost);
+			}
 			/*if (DEBUG) {
 				System.out.println("after: " + outputLayer.getCellValueAsDouble(x, y));
 			}*/
@@ -1033,6 +1052,11 @@ GeoAlgorithm {
 			System.out.println("SET!!!!!!!!!! " + outputLayer.getOutputChannel());
 			System.out.println("before: " + outputLayer.getCellValueAsDouble(x, y));
 			outputLayer.setCellValue(x, y, dstAccCost);
+			if (output_GAccGlobalCost.isNoDataValue(output_GAccGlobalCost.getCellValueAsDouble(x, y))
+					|| output_GAccGlobalCost.getCellValueAsDouble(x, y) > dstAccCost) {
+				System.out.println("also updating the global cost!");
+				output_GAccGlobalCost.setCellValue(x, y, dstAccCost);
+			}
 			System.out.println("after: " + outputLayer.getCellValueAsDouble(x, y));
 			if (outputLayer.getCellValueAsDouble(x, y) != dstAccCost) {
 				System.out.println("Why!!!!!!!!!!!!??????? " + dstAccCost +" != "+ outputLayer.getCellValueAsDouble(x, y));
