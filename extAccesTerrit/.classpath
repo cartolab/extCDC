@@ -12,5 +12,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/libRaster"/>
 	<classpathentry kind="src" path="/extRasterTools-SE"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/gvsig_1_x_bindings"/>
+	<classpathentry kind="src" path="/algorithms"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

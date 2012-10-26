@@ -1,11 +1,13 @@
 package es.udc.cartolab.accesTerrit.utils;
 
+import java.awt.geom.Rectangle2D;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -312,5 +314,33 @@ public class AccesTerritParameters {
         }
 
         return rasters;
+    }
+    
+    public FLyrRasterSE checkExtents() {
+    	Rectangle2D originExtent = origen.getFullExtent();
+    	if (!originExtent.equals(scs.getFullExtent())) {
+    		return scs;
+    	}
+    	if (!originExtent.equals(zona_despl.getFullExtent())) {
+    		return zona_despl;
+    	}
+    	for (FLyrRasterSE raster:this.scc) {
+        	if (!originExtent.equals(raster.getFullExtent())) {
+        		return raster;
+        	}
+    	}
+    	return null;
+    }
+    
+    public boolean checkUniqueRasters() {
+        HashSet<FLyrRasterSE> set = new HashSet<FLyrRasterSE>();
+        boolean unique = true;
+        unique &= set.add(origen);
+        unique &= set.add(zona_despl);
+        unique &= set.add(scs);
+        for (FLyrRasterSE raster : scc) {
+            unique &= set.add(raster);
+        }
+        return unique;
     }
 }

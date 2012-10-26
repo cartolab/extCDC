@@ -342,10 +342,6 @@ public class DialogMatrix extends JPanel implements IWindow, ActionListener {
 
             parameters.setMatriz(matrix);
 
-            // NACHOUVE ;-)
-            // AQUI LLAMARIAMOS AL ALGORITMO PASÁNDOLE PARAMETERS, DONDE TENEMOS
-            // TODOS LOS DATOS
-
             PluginServices.getMDIManager().closeWindow(this);
             (new Thread(new Runnable() {
                 public void run() {

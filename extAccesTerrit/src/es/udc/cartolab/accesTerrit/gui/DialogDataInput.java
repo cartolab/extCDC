@@ -494,33 +494,6 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 
     }
 
-    private boolean checkUniqueRasters() {
-        HashSet<FLyrRasterSE> set = new HashSet<FLyrRasterSE>();
-        boolean unique = true;
-        unique &= set.add(parameters.getOrigen());
-        unique &= set.add(parameters.getZonaDespl());
-        unique &= set.add(parameters.getScs());
-        for (FLyrRasterSE raster : parameters.getScc()) {
-            unique &= set.add(raster);
-        }
-        return unique;
-    }
-
-    private boolean checkScsSccSameSize() {
-        FLyrRasterSE scs = parameters.getScs();
-        int x = (int) scs.getDataSource().getWidth();
-        int y = (int) scs.getDataSource().getHeight();
-
-        for (FLyrRasterSE scc : parameters.getScc()) {
-            if ((((int) scc.getDataSource().getWidth()) != x)
-                    || (((int) scc.getDataSource().getHeight()) != y)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     public void actionPerformed(ActionEvent e) {
 
         if (e.getSource() == dotsButtonOutput) {
@@ -571,7 +544,7 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
                 this.parameters.setDestino(new File(fieldOutputDirectory
                         .getText()));
 
-                if (!checkUniqueRasters()) {
+                if (!parameters.checkUniqueRasters()) {
                     JOptionPane.showMessageDialog(this, PluginServices.getText(
                             this, "ErrorUniqueRastersMessage"), PluginServices
                             .getText(this, "ErrorUniqueRastersTitle"),
@@ -579,10 +552,13 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
                     return;
                 }
 
-                if (!checkScsSccSameSize()) {
+                FLyrRasterSE diffLayer = parameters.checkExtents();
+                if (diffLayer != null) {
                     JOptionPane.showMessageDialog(this, PluginServices.getText(
-                            this, "ErrorSCCMessage"), PluginServices.getText(
-                            this, "ErrorSCCTitle"), JOptionPane.ERROR_MESSAGE);
+                            this, "ErrorExtentMessage").
+                            replace("<origen>", parameters.getOrigen().getName()).
+                            replace("<diffLayer>", diffLayer.getName()), PluginServices.getText(
+                            this, "ErrorExtentTitle"), JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
