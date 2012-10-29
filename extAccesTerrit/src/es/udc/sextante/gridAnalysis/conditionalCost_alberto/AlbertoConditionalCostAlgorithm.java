@@ -499,7 +499,9 @@ GeoAlgorithm {
 		}
 
 		Collections.sort(m_CentralPoints, new XYGridcellValue_Comparator());
+		//long useless = 0, total = 0;
         while (!m_CentralPoints.isEmpty()) {
+        	boolean hasToSort = false;
         	Object[] ccsID_cellValue = m_CentralPoints.remove(0);
 
             if ((m_Task != null) && (m_Task.isCanceled())) {
@@ -509,9 +511,9 @@ GeoAlgorithm {
 			cell = (GridCell) ccsID_cellValue[1];
 			x1 = cell.getX();
 			y1 = cell.getY();
-			
+
 			orgCostValue = m_Cost.getCellValueAsDouble(x1, y1);
-			
+
 			if ((orgCostValue <= 0) || m_Cost.isNoDataValue(orgCostValue)) {
 				continue;
 			}
@@ -522,6 +524,7 @@ GeoAlgorithm {
 			final boolean isNode = orgSurface.isNode();
 			IRasterLayer surface;
 			if (orgSurfID_Name.equalsIgnoreCase("GLOBAL")) {
+				String orgSurfaceName = orgSurface.getCCSName();
 				for (i = -1; i < 2; i++) {
 					for (j = -1; j < 2; j++) {
 						x2 = x1 + i;
@@ -529,92 +532,95 @@ GeoAlgorithm {
 						if ((x1 == x2) && (y1 == y2)) {
 							continue;
 						}
-
+						//boolean useful = false;
 						dstCostValue = m_Cost.getCellValueAsDouble(x2, y2);
-						
+
 						//ALGORITHM CALCULUS
 						// TODO ¿No llega con chequear > 0 ?
 						if ((dstCostValue > 0) && !m_Cost.isNoDataValue(dstCostValue)) {
 							dstSurfaceID = m_Movement_Surfaces.getCellValueAsInt(x2, y2);
 							dist = dDist[i + 1][j + 1];
 
-							boolean CAS_done = false;
-							//It means that the gridCell on m_CentralPoint belongs to Global Cost Surface
-							for (String k: input_Cond_Costs.keySet()) {
+							if (canMoveTo(orgSurface, dstSurfaceID)){
+								orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
+								hasToSort |= setOutputValue(output_GAccCost, orgAccCost, orgCostValue, dstCostValue, dist, x2, y2, "GLOBAL", iPoint);
+							}
 
-								//TODO IMPORTANTE 
-								// Esto hace que se entre varias veces en el CASd
-								surface = input_Cond_Costs.get(k);					
-								if ((surface == null)) {
-									continue;
-								}
+							//TODO IMPORTANTE 
+							// Esto hace que se entre varias veces en el CASd
+							surface = input_Cond_Costs.get(orgSurfaceName);					
+							if ((surface != null) && isNode && surface.getCellValueAsDouble(x2, y2)>-1) {
+								//TODO 
+								String new_ccsID = surface.getName();
+								IRasterLayer outputRaster = output_CondAccCosts.get(new_ccsID);
+								double cost2 = surface.getCellValueAsDouble(x2, y2);
+								orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
+								hasToSort |= setOutputValue(outputRaster, orgAccCost, orgCostValue, cost2, dist, x2, y2, new_ccsID, iPoint);
+							}
 
-								if (isNode && surface.getCellValueAsDouble(x2, y2)>-1 && orgSurface.getCCSName()==k) {
-									//TODO 
-									String new_ccsID = surface.getName();
-									IRasterLayer outputRaster = output_CondAccCosts.get(new_ccsID);
-									double cost2 = surface.getCellValueAsDouble(x2, y2);
-									orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
-									dPrevAccCost = outputRaster.getCellValueAsDouble(x2, y2);
-									setOutputValue(outputRaster, orgAccCost, dPrevAccCost, orgCostValue, cost2, dist, x2, y2, new_ccsID, iPoint);
-								}
-
-								if (!CAS_done && canMoveTo(orgSurface, dstSurfaceID)){
-									orgAccCost = output_GAccCost.getCellValueAsDouble(x1, y1);
-									dPrevAccCost = output_GAccCost.getCellValueAsDouble(x2, y2);
-									setOutputValue(output_GAccCost, orgAccCost, dPrevAccCost, orgCostValue, dstCostValue, dist, x2, y2, "GLOBAL", iPoint);
-									CAS_done = true;
-								}
-							} // FOR of "D tiene valor en algÃºn SCCi (1-n)"
+							/*if (!useful) {
+								useless++;
+							}
+							total++;*/
 						}
 					}
 				}
 			} else {
-			
-				for (i = -1; i < 2; i++) {
-					for (j = -1; j < 2; j++) {
-						x2 = x1 + i;
-						y2 = y1 + j;
-						if ((x1 == x2) && (y1 == y2)) {
-							continue;
-						}
-	
-						dstCostValue = m_Cost.getCellValueAsDouble(x2, y2);
-	
-						//ALGORITHM CALCULUS
-						// TODO ¿No llega con chequear > 0 ?
-						if ((dstCostValue > 0) && !m_Cost.isNoDataValue(dstCostValue)) {
-	
-							dstSurfaceID = m_Movement_Surfaces.getCellValueAsInt(x2, y2);
-							final MovementSurface dstSurface = surfacesMap.get(dstSurfaceID);
-							dist = dDist[i + 1][j + 1];
-							surface = input_Cond_Costs.get(orgSurfID_Name);
-							if (surface == null) {
+				surface = input_Cond_Costs.get(orgSurfID_Name);
+				if (surface != null) {
+					for (i = -1; i < 2; i++) {
+						for (j = -1; j < 2; j++) {
+							x2 = x1 + i;
+							y2 = y1 + j;
+							if ((x1 == x2) && (y1 == y2)) {
 								continue;
 							}
+							//boolean useful = false;
 
-							final IRasterLayer cac_output = output_CondAccCosts.get(orgSurfID_Name);
-							if (surface.getCellValueAsDouble(x2, y2)>-1) {
-								final double cost1 = surface.getCellValueAsDouble(x1, y1);
+							dstCostValue = m_Cost.getCellValueAsDouble(x2, y2);
+
+							//ALGORITHM CALCULUS
+							// TODO ¿No llega con chequear > 0 ?
+							if ((dstCostValue > 0) && !m_Cost.isNoDataValue(dstCostValue)) {
+
+								dstSurfaceID = m_Movement_Surfaces.getCellValueAsInt(x2, y2);
+								final MovementSurface dstSurface = surfacesMap.get(dstSurfaceID);
+								if (dstSurface == null) {
+									continue;
+								}
+								dist = dDist[i + 1][j + 1];
+
+								final IRasterLayer cac_output = output_CondAccCosts.get(orgSurfID_Name);
 								final double cost2 = surface.getCellValueAsDouble(x2, y2);
-								orgAccCost = cac_output.getCellValueAsDouble(x1, y1);
-								dPrevAccCost = cac_output.getCellValueAsDouble(x2, y2);
-								setOutputValue(cac_output, orgAccCost, dPrevAccCost, cost1, cost2, dist, x2, y2, orgSurfID_Name, iPoint);
-							}
+								if (cost2 > -1) {
+									final double cost1 = surface.getCellValueAsDouble(x1, y1);
+									orgAccCost = cac_output.getCellValueAsDouble(x1, y1);
+									hasToSort |= setOutputValue(cac_output, orgAccCost, cost1, cost2, dist, x2, y2, orgSurfID_Name, iPoint);
+								}
 
-							if (dstSurface.isNode() && dstSurface.getCCSName()==orgSurfID_Name){
-								final double cost1 = surface.getCellValueAsDouble(x1, y1);
-								orgAccCost = cac_output.getCellValueAsDouble(x1, y1);
-								dPrevAccCost = output_GAccCost.getCellValueAsDouble(x2, y2);
-								setOutputValue(output_GAccCost, orgAccCost, dPrevAccCost, cost1, dstCostValue, dist, x2, y2, "GLOBAL", iPoint);
+								if (dstSurface.isNode() && dstSurface.getCCSName() == orgSurfID_Name){
+									final double cost1 = surface.getCellValueAsDouble(x1, y1);
+									orgAccCost = cac_output.getCellValueAsDouble(x1, y1);
+									hasToSort |= setOutputValue(output_GAccCost, orgAccCost, cost1, dstCostValue, dist, x2, y2, "GLOBAL", iPoint);
+								}
+
+								/*if (!useful) {
+									useless++;
+								}
+								total++;*/
 							}
 						}
 					}
 				}
 			}
+			if (hasToSort) {
+				Collections.sort(m_CentralPoints, new XYGridcellValue_Comparator());
+			}
 
 		} // For para recorrer celdas
 
+        //System.out.println("Iteraciones internas inútiles: " + useless + " de " + total);
+        
 	}
 
 
@@ -847,9 +853,8 @@ GeoAlgorithm {
 	}
 
 
-	private void setOutputValue(final IRasterLayer outputLayer,
+	private boolean setOutputValue(final IRasterLayer outputLayer,
 			final double orgAccCost,
-			final double prevDstAccCost,
 			final double cost1,
 			final double cost2,
 			final double dist,
@@ -862,9 +867,10 @@ GeoAlgorithm {
 
 		//TODO Esto puede pasar????
 		if (dstAccCost < 0) {
-			return;
+			return false;
 		}
 
+		double prevDstAccCost = outputLayer.getCellValueAsDouble(x, y);
 		if (outputLayer.isNoDataValue(prevDstAccCost) || (prevDstAccCost > dstAccCost)) {
 			outputLayer.setCellValue(x, y, dstAccCost);
 			if (output_GAccGlobalCost.isNoDataValue(output_GAccGlobalCost.getCellValueAsDouble(x, y))
@@ -877,10 +883,9 @@ GeoAlgorithm {
 			cssID_cellValue[1] = new GridCell(x, y, iPoint);
 			cssID_cellValue[2] = dstAccCost;
 
-			m_CentralPoints.add(cssID_cellValue);
-			Collections.sort(m_CentralPoints, new XYGridcellValue_Comparator());
-
+			return m_CentralPoints.add(cssID_cellValue);
 		}
+		return false;
 	}
 
 
