@@ -1,4 +1,4 @@
-package es.udc.sextante.gridAnalysis.conditionalCost_alberto;
+package es.udc.sextante.gridAnalysis.conditionalCost;
 
 import java.util.Comparator;
 

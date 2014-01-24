@@ -16,14 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *******************************************************************************/
-package es.udc.sextante.gridAnalysis.conditionalCost_alberto;
+package es.udc.sextante.gridAnalysis.conditionalCost;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashMap;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -35,6 +29,9 @@ import es.unex.sextante.core.Sextante;
 import es.unex.sextante.dataObjects.IFeature;
 import es.unex.sextante.dataObjects.IFeatureIterator;
 import es.unex.sextante.dataObjects.IRasterLayer;
+import es.unex.sextante.dataObjects.IRecord;
+import es.unex.sextante.dataObjects.IRecordsetIterator;
+import es.unex.sextante.dataObjects.ITable;
 import es.unex.sextante.dataObjects.IVectorLayer;
 import es.unex.sextante.exceptions.GeoAlgorithmExecutionException;
 import es.unex.sextante.exceptions.RepeatedParameterNameException;
@@ -47,7 +44,7 @@ import es.unex.sextante.rasterWrappers.GridWrapper;
  * @author uve
  * 
  */
-public class VAC_ManuelMatrix_CostAlgorithm
+public class VAC_CostAlgorithm
          extends
             GeoAlgorithm {
 
@@ -73,8 +70,8 @@ public class VAC_ManuelMatrix_CostAlgorithm
    @Override
    public void defineCharacteristics() {
 
-      setName(Sextante.getText("VAC_COST_MANUAL_matrix"));
-      setGroup(Sextante.getText("ALBERTO"));
+      setName(Sextante.getText("VAC_COST"));
+      setGroup(Sextante.getText("ALBERTO_VAC"));
       setUserCanDefineAnalysisExtent(true);
 
       try {
@@ -85,8 +82,7 @@ public class VAC_ManuelMatrix_CostAlgorithm
          m_Parameters.addInputRasterLayer(LINKTIME_GRID, LINKTIME_GRID, true);
 
          //m_Parameters.addBoolean(INTERPOLATE, Sextante.getText("Use_interpolation"), true);
-         m_Parameters.addFilepath(LINKS_MATRIX, "Link Matrix", false, true, ".csv");
-         //m_Parameters.addInputTable(LINKS_MATRIX, "LINKS_MATRIX", true);
+         m_Parameters.addInputTable(LINKS_MATRIX, "LINKS_MATRIX", true);
          addOutputRasterLayer(OUTPUT_ACCCOST, Sextante.getText("VAC_Accumulated_cost"));
       }
       catch (final RepeatedParameterNameException e) {
@@ -111,7 +107,7 @@ public class VAC_ManuelMatrix_CostAlgorithm
 
       m_Layer = m_Parameters.getParameterValueAsVectorLayer(LAYER);
 
-      final String matrixTable = m_Parameters.getParameterValueAsString(LINKS_MATRIX);
+      final ITable matrixTable = m_Parameters.getParameterValueAsTable(LINKS_MATRIX);
       m_LinkIdGrid = m_Parameters.getParameterValueAsRasterLayer(LINKID_GRID);
       m_LinkTimeGrid = m_Parameters.getParameterValueAsRasterLayer(LINKTIME_GRID);
 
@@ -147,7 +143,7 @@ public class VAC_ManuelMatrix_CostAlgorithm
       //      System.out.println("MAX ID: " + m_LinkIdGrid.getMaxValue());
       //      System.out.println("Min ID: " + m_LinkIdGrid.getMinValue());
 
-      //TODO Debería de tener un sólo punto... pero por si acaso
+      //TODO Deberï¿½a de tener un sï¿½lo punto... pero por si acaso
       //TODO HACER PARA QUE PUEDA TENER MUCHOS PUNTOS
       while (iter.hasNext()) {
          final IFeature feature = iter.next();
@@ -161,65 +157,20 @@ public class VAC_ManuelMatrix_CostAlgorithm
       iter.close();
 
       final HashMap<Integer, HashMap> timeLinksMap = new HashMap<Integer, HashMap>();
+      HashMap<String, Object> recMap = null;
 
-      final File matrixFile = new File(matrixTable);
-      FileInputStream fis = null;
-      BufferedInputStream bis = null;
-      DataInputStream dis = null;
-
-      try {
-         fis = new FileInputStream(matrixFile);
-
-         // Here BufferedInputStream is added for fast reading.
-         bis = new BufferedInputStream(fis);
-         dis = new DataInputStream(bis);
-
-         // dis.available() returns 0 if the file does not have more lines.
-         String[] headerNames = null;
-         while (dis.available() != 0) {
-
-            //           final IRecordsetIterator tableIter = matrixTable.iterator();
-            //           for (; tableIter.hasNext();) {
-
-            final String line = dis.readLine();
-            final String[] values = line.split(";");
-            //final IRecord rec = new gvRecord();
-            if (line.startsWith("ENLACE")) {
-               headerNames = values;
-               continue;
-            }
-            final String aux = values[0];
-            final int link_id1 = Integer.parseInt(aux);
-
-            final HashMap<String, Object> recMap = new HashMap<String, Object>();
-            for (int k = 1; k < headerNames.length; k++) {
-               final String fieldName = headerNames[k];
-               System.out.println(fieldName + ": " + values[k]);
-               recMap.put(fieldName, values[k]);
-            }
-
-            timeLinksMap.put(link_id1, recMap);
-            //           }
-
-
-            //        // this statement reads the line from the file and print it to
-            //          // the console.
-            //          System.out.println(dis.readLine());
+      final IRecordsetIterator tableIter = matrixTable.iterator();
+      for (; tableIter.hasNext();) {
+         final IRecord rec = tableIter.next();
+         final String aux = (String) rec.getValue(0);
+         final int link_id1 = Integer.parseInt(aux);
+         recMap = new HashMap<String, Object>();
+         for (int k = 0; k < matrixTable.getFieldCount(); k++) {
+            final String fieldName = matrixTable.getFieldName(k);
+            recMap.put(fieldName, rec.getValue(k));
          }
-
-         // dispose all the resources after using them.
-         fis.close();
-         bis.close();
-         dis.close();
-
+         timeLinksMap.put(link_id1, recMap);
       }
-      catch (final FileNotFoundException e) {
-         e.printStackTrace();
-      }
-      catch (final IOException e) {
-         e.printStackTrace();
-      }
-
 
       iTotalProgress = m_LinkIdGrid.getNX();
 
@@ -274,7 +225,9 @@ public class VAC_ManuelMatrix_CostAlgorithm
                ////OJO: WARNING: multiplico las celdas de VAC por 4.5 seg. (ASEGURAR QUE SUMAN 1)
                //             //                     time_between_link = Double.parseDouble((rec.getValue((int) orgIdLinkValue)).toString()) * 4.5;
                //             //TODO: Ahora se tiene el valor en segundos en las celdas
-               time_between_link = Double.parseDouble(rec.get(String.valueOf(orgIdLinkValue)).toString());
+
+               //System.out.println("rec: " + orgIdLinkValue + " " + rec.get(String.valueOf(orgIdLinkValue)));
+               time_between_link = Double.parseDouble((rec.get(String.valueOf(orgIdLinkValue))).toString());
             }
             //            }
 
@@ -288,5 +241,6 @@ public class VAC_ManuelMatrix_CostAlgorithm
       // TODO Auto-generated method stub
       return !m_Task.isCanceled();
    }
+
 
 }

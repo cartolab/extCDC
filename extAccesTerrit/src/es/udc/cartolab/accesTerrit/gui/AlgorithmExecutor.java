@@ -25,7 +25,7 @@ import com.iver.andami.ui.mdiManager.WindowInfo;
 import com.iver.cit.gvsig.project.documents.view.gui.BaseView;
 
 import es.udc.cartolab.accesTerrit.utils.AccesTerritParameters;
-import es.udc.sextante.gridAnalysis.conditionalCost_alberto.AlbertoConditionalCostAlgorithm;
+import es.udc.sextante.gridAnalysis.conditionalCost.AlbertoConditionalCostAlgorithm;
 import es.unex.sextante.core.AnalysisExtent;
 import es.unex.sextante.core.OutputObjectsSet;
 import es.unex.sextante.dataObjects.IDataObject;
