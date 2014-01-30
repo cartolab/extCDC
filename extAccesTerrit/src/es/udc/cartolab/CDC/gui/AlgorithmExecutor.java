@@ -1,4 +1,4 @@
-package es.udc.cartolab.accesTerrit.gui;
+package es.udc.cartolab.CDC.gui;
 
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -24,8 +24,8 @@ import com.iver.andami.ui.mdiManager.IWindow;
 import com.iver.andami.ui.mdiManager.WindowInfo;
 import com.iver.cit.gvsig.project.documents.view.gui.BaseView;
 
-import es.udc.cartolab.accesTerrit.utils.AccesTerritParameters;
-import es.udc.sextante.gridAnalysis.conditionalCost.AlbertoConditionalCostAlgorithm;
+import es.udc.cartolab.CDC.utils.CDCParameters;
+import es.udc.sextante.gridAnalysis.CDC.CDCAlgorithm;
 import es.unex.sextante.core.AnalysisExtent;
 import es.unex.sextante.core.OutputObjectsSet;
 import es.unex.sextante.dataObjects.IDataObject;
@@ -39,7 +39,7 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
     private JLabel taskOutput;
     private JLabel timeOutput;
     private Task task;
-    private AccesTerritParameters parameters;
+    private CDCParameters parameters;
     private WindowInfo viewInfo = null;
     private JPanel panelButtons = null;
     private JButton okButton = null;
@@ -47,7 +47,7 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
     private OutputObjectsSet output;
     private Date initTime;
 
-    private AlgorithmExecutor(AccesTerritParameters parameters, BaseView view) {
+    private AlgorithmExecutor(CDCParameters parameters, BaseView view) {
         super();
         this.view = view;
         this.parameters = parameters;
@@ -66,7 +66,7 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
         @Override
         public Void doInBackground() {
             try {
-                AlbertoConditionalCostAlgorithm algorithm = new AlbertoConditionalCostAlgorithm();
+                CDCAlgorithm algorithm = new CDCAlgorithm();
 
                 gvRasterLayer scs = new gvRasterLayer(), origin = new gvRasterLayer(), zonas_despl = new gvRasterLayer();
                 scs.create(parameters.getScs());
@@ -200,7 +200,7 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
      * Create the GUI and show it. As with all GUI code, this must run on the
      * event-dispatching thread.
      */
-    public static void createAndShowGUI(AccesTerritParameters parameters) {
+    public static void createAndShowGUI(CDCParameters parameters) {
 
         IWindow window = PluginServices.getMDIManager().getActiveWindow();
         BaseView view = null;

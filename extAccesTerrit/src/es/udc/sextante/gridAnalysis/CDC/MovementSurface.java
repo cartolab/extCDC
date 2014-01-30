@@ -1,4 +1,4 @@
-package es.udc.sextante.gridAnalysis.conditionalCost;
+package es.udc.sextante.gridAnalysis.CDC;
 
 import java.util.HashMap;
 

@@ -1,4 +1,4 @@
-package es.udc.cartolab.accesTerrit;
+package es.udc.cartolab.CDC;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,9 +11,9 @@ import com.iver.andami.ui.mdiManager.IWindow;
 import com.iver.cit.gvsig.fmap.layers.FLayer;
 import com.iver.cit.gvsig.project.documents.view.gui.BaseView;
 
-import es.udc.cartolab.accesTerrit.gui.DialogDataInput;
+import es.udc.cartolab.CDC.gui.DialogDataInput;
 
-public class AccesTerritGuiExtension extends Extension {
+public class CDCGuiExtension extends Extension {
 
     List<FLyrRasterSE> rasters;
 

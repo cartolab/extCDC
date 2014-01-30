@@ -1,4 +1,4 @@
-package es.udc.cartolab.accesTerrit.utils;
+package es.udc.cartolab.CDC.utils;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedReader;
@@ -18,7 +18,7 @@ import es.unex.sextante.gvsig.core.gvRasterLayer;
 import es.unex.sextante.gvsig.core.gvTable;
 import es.unex.sextante.outputs.NullOutputChannel;
 
-public class AccesTerritParameters {
+public class CDCParameters {
 
     private FLyrRasterSE origen, zona_despl, scs;
     private Collection<FLyrRasterSE> scc;

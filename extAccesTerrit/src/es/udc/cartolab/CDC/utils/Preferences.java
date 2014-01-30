@@ -1,4 +1,4 @@
-package es.udc.cartolab.accesTerrit.utils;
+package es.udc.cartolab.CDC.utils;
 
 import java.io.BufferedReader;
 import java.io.File;

@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *******************************************************************************/
-package es.udc.sextante.gridAnalysis.conditionalCost;
+package es.udc.sextante.gridAnalysis.CDC;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ import es.unex.sextante.rasterWrappers.GridCell;
  * @author uve
  * 
  */
-public class AlbertoConditionalCostAlgorithm
+public class CDCAlgorithm
 extends
 GeoAlgorithm {
 

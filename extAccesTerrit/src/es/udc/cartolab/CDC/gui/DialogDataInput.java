@@ -1,4 +1,4 @@
-package es.udc.cartolab.accesTerrit.gui;
+package es.udc.cartolab.CDC.gui;
 
 import info.clearthought.layout.TableLayout;
 
@@ -32,9 +32,9 @@ import com.iver.andami.PluginServices;
 import com.iver.andami.ui.mdiManager.IWindow;
 import com.iver.andami.ui.mdiManager.WindowInfo;
 
-import es.udc.cartolab.accesTerrit.utils.AccesTerritParameters;
-import es.udc.cartolab.accesTerrit.utils.CsvFilter;
-import es.udc.cartolab.accesTerrit.utils.Preferences;
+import es.udc.cartolab.CDC.utils.CDCParameters;
+import es.udc.cartolab.CDC.utils.CsvFilter;
+import es.udc.cartolab.CDC.utils.Preferences;
 
 public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 
@@ -54,7 +54,7 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
     private FLyrRasterSE[] rasters;
     private Collection<FLyrRasterSE> sccs = new HashSet<FLyrRasterSE>();
     private Vector<String> options;
-    private AccesTerritParameters parameters;
+    private CDCParameters parameters;
 
     public WindowInfo getWindowInfo() {
         if (viewInfo == null) {
@@ -75,7 +75,7 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
 
     public DialogDataInput(FLyrRasterSE[] rasters) {
         super();
-        this.parameters = new AccesTerritParameters();
+        this.parameters = new CDCParameters();
         this.rasters = rasters;
         options = new Vector<String>();
         for (FLyrRasterSE raster : rasters) {
@@ -89,7 +89,7 @@ public class DialogDataInput extends JPanel implements IWindow, ActionListener {
         }
     }
 
-    public DialogDataInput(AccesTerritParameters parameters,
+    public DialogDataInput(CDCParameters parameters,
             FLyrRasterSE[] rasters) {
         super();
         this.parameters = parameters;

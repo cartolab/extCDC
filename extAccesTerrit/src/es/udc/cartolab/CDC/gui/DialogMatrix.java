@@ -1,4 +1,4 @@
-package es.udc.cartolab.accesTerrit.gui;
+package es.udc.cartolab.CDC.gui;
 
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -23,8 +23,8 @@ import com.iver.andami.PluginServices;
 import com.iver.andami.ui.mdiManager.IWindow;
 import com.iver.andami.ui.mdiManager.WindowInfo;
 
-import es.udc.cartolab.accesTerrit.utils.AccesTerritParameters;
-import es.udc.cartolab.accesTerrit.utils.CsvFilter;
+import es.udc.cartolab.CDC.utils.CDCParameters;
+import es.udc.cartolab.CDC.utils.CsvFilter;
 
 public class DialogMatrix extends JPanel implements IWindow, ActionListener {
 
@@ -41,7 +41,7 @@ public class DialogMatrix extends JPanel implements IWindow, ActionListener {
     private JLabel[] labelsClassesColumn;
     private JCheckBox[][] checkBoxesNode;
     private FLyrRasterSE[] rasters;
-    private AccesTerritParameters parameters;
+    private CDCParameters parameters;
 
     public WindowInfo getWindowInfo() {
         if (viewInfo == null) {
@@ -59,7 +59,7 @@ public class DialogMatrix extends JPanel implements IWindow, ActionListener {
 
     }
 
-    public DialogMatrix(AccesTerritParameters parameters, FLyrRasterSE[] rasters) {
+    public DialogMatrix(CDCParameters parameters, FLyrRasterSE[] rasters) {
         super();
         this.rasters = rasters;
         this.parameters = parameters;

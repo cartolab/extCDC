@@ -1,6 +1,6 @@
-<project name="AccesTerrit" default="generate-without-source" basedir=".">
+<project name="CDC" default="generate-without-source" basedir=".">
     <description>
-    	AccesTerrit
+    	Algoritmo para cálculo del Coste Distancia Condicionado
     </description>
   <!-- set global properties for this build -->
   <property name="src" location="src"/>
@@ -8,9 +8,9 @@
   <property name="lib" location="lib" />
   <property name="dist"  location="dist"/>
   <property name="mainplugin" value="com.iver.cit.gvsig"/>
-  <property name="plugin" value="es.udc.cartolab.accesTerrit"/>
-  <property name="algorithm" value="sextante_accesTerrit"/>
-  <property name="gvsiglibjar" value="es.udc.cartolab.accesTerrit"/>
+  <property name="plugin" value="es.udc.cartolab.CDC"/>
+  <property name="algorithm" value="sextante_CDC"/>
+  <property name="gvsiglibjar" value="es.udc.cartolab.CDC"/>
   <property name="andami" location="../_fwAndami" />
   <property name="extensionsDir" location="${andami}/gvSIG/extensiones"/>
   <property name="lib-dir" location="${extensionsDir}/${mainplugin}/lib"/>

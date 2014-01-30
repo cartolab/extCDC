@@ -1,4 +1,4 @@
-package es.udc.cartolab.accesTerrit.gui;
+package es.udc.cartolab.CDC.gui;
 
 import info.clearthought.layout.TableLayout;
 
@@ -26,8 +26,8 @@ import com.iver.andami.PluginServices;
 import com.iver.andami.ui.mdiManager.IWindow;
 import com.iver.andami.ui.mdiManager.WindowInfo;
 
-import es.udc.cartolab.accesTerrit.utils.AccesTerritParameters;
-import es.udc.cartolab.accesTerrit.utils.AreaClass;
+import es.udc.cartolab.CDC.utils.CDCParameters;
+import es.udc.cartolab.CDC.utils.AreaClass;
 
 public class DialogZDDefinition extends JPanel implements IWindow,
         ActionListener {
@@ -47,7 +47,7 @@ public class DialogZDDefinition extends JPanel implements IWindow,
     private JTextField[] textFieldsNames;
     private FLyrRasterSE[] rasters;
     private Vector<String> options;
-    private AccesTerritParameters parameters;
+    private CDCParameters parameters;
 
     public WindowInfo getWindowInfo() {
         // TODO Auto-generated method stub
@@ -65,7 +65,7 @@ public class DialogZDDefinition extends JPanel implements IWindow,
 
     }
 
-    public DialogZDDefinition(AccesTerritParameters parameters,
+    public DialogZDDefinition(CDCParameters parameters,
             FLyrRasterSE[] rasters) {
         super();
         this.parameters = parameters;
