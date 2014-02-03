@@ -7,12 +7,12 @@
 	<libraries library-dir="lib"/>
 	<resourceBundle name="text"/>
 	<extensions>
-		<extension class-name="es.udc.cartolab.accesTerrit.AccesTerritGuiExtension" description="ACCESTERRIT_PANEL" active="true">
-			<tool-bar name="_acces_territ_tool-bar-name">
-				<action-tool icon="acces_territ-icon" tooltip="_acces_territ-launcher-tooltip"
+		<extension class-name="es.udc.cartolab.CDC.CDCGuiExtension" description="CDC_PANEL" active="true">
+			<tool-bar name="_CDC_tool-bar-name">
+				<action-tool icon="CDC-icon" tooltip="_CDC-launcher-tooltip"
 					action-command="gui" position="0" />
 			</tool-bar>
-			<menu text="_acces_territ_menu_name/_acces_territ-launcher"
+			<menu text="_CDC_menu_name/_CDC-launcher"
 				action-command="gui" position="0"
 				 />
 		</extension>

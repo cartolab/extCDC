@@ -29,7 +29,7 @@ public class CDCGuiExtension extends Extension {
 
     protected void registerIcons() {
         PluginServices.getIconTheme().registerDefault(
-                "acces_territ-icon",
+				"CDC-icon",
                 this.getClass().getClassLoader().getResource(
                         "images/algorithm.png"));
     }

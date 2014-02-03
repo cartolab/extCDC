@@ -105,7 +105,7 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
                     Font.BOLD, taskOutput.getFont().getSize() + 2);
             taskOutput.setFont(newLabelFont);
             taskOutput.setText(PluginServices.getText(this,
-                    "_acces_territ-executed"));
+ "_CDC-executed"));
             timeOutput.setText(durationMessage);
             okButton.setEnabled(true);
         }
@@ -136,7 +136,7 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
         c.gridy++;
         c.gridwidth = 5;
 
-        taskOutput = new JLabel(PluginServices.getText(this, "_acces_territ-executing"));
+		taskOutput = new JLabel(PluginServices.getText(this, "_CDC-executing"));
         taskOutput.setHorizontalAlignment(SwingConstants.CENTER);
         Font newLabelFont = new Font(taskOutput.getFont().getName(),
                 Font.PLAIN, taskOutput.getFont().getSize() + 2);
@@ -149,9 +149,13 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
         c.gridy++;
         c.gridwidth = 5;
 
-        timeOutput = new JLabel("<html>" + PluginServices.getText(this, "_acces_territ-init_time") +
+		timeOutput = new JLabel("<html>"
+				+ PluginServices.getText(this, "_CDC-init_time")
+				+
                 ": " + DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM).format(initTime) +
-                "<br>" + PluginServices.getText(this, "_acces_territ-end_time") + ": ---</html></html>");
+ "<br>"
+				+ PluginServices.getText(this, "_CDC-end_time")
+				+ ": ---</html></html>");
         timeOutput.setHorizontalAlignment(SwingConstants.CENTER);
         newLabelFont = new Font(timeOutput.getFont().getName(),
                 Font.PLAIN, timeOutput.getFont().getSize());
@@ -220,7 +224,7 @@ public class AlgorithmExecutor extends JPanel implements IWindow, ActionListener
             viewInfo = new WindowInfo(WindowInfo.MODALDIALOG
                     | WindowInfo.PALETTE | WindowInfo.NOTCLOSABLE);
             viewInfo.setTitle(PluginServices.getText(this,
-                    "_acces_territ-executing-title"));
+					"_CDC-executing-title"));
             viewInfo.setWidth(350);
             viewInfo.setHeight(170);
         }

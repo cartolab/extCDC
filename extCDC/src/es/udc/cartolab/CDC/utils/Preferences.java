@@ -12,7 +12,7 @@ public class Preferences {
     // cambios son v�lidos.
 
     private static final String preferencesFile = "gvSIG" + File.separator
-            + "extensiones" + File.separator + "es.udc.cartolab.accesTerrit"
+			+ "extensiones" + File.separator + "es.udc.cartolab.CDC"
 	    + File.separator + ".config";
     private static Preferences instance = null;
 
